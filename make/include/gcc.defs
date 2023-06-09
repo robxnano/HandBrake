@@ -72,7 +72,7 @@ GCC.args.O.size-aggressive = -Oz
 GCC.args.O.speed           = -O3
 GCC.args.cpu.none          =
 GCC.args.cpu.native        =
-ifeq ($(HOST.machine),$(filter $(HOST.machine),i686 x86_64))
+ifeq ($(HOST.machine),$(filter $(HOST.machine),i586 i686 x86_64))
     GCC.args.cpu.native   += -march=native
 endif
 GCC.args.lto.none          =

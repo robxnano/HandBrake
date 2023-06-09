@@ -76,6 +76,8 @@ ifneq (,$(filter $(HOST.release),2.10))
     TEST.GCC.l += iconv
 endif
     TEST.GCC.D += _POSIX_C_SOURCE=200112L __EXTENSIONS__
+else ifeq ($(HOST.system),haiku)
+    TEST.GCC.l += network iconv
 else ifeq (1-mingw,$(HOST.cross)-$(HOST.system))
 ifeq ($(HAS.dlfcn),1)
     TEST.GCC.l += dl
