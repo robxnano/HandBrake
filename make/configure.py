@@ -87,12 +87,14 @@ class Configure( object ):
         self.build_final  = os.curdir
         self.src_final    = self._final_dir( self.build_dir, self.src_dir )
         self.prefix_final = self._final_dir( self.build_dir, self.prefix_dir )
+        self.data_final   = self._final_dir( self.build_dir, self.data_dir )
         if build_tuple.match( '*-*-darwin*' ):
             self.xcode_prefix_final = self._final_dir( self.build_dir, self.xcode_prefix_dir )
 
         self.infof( 'compute: makevar SRC/    = %s\n', self.src_final )
         self.infof( 'compute: makevar BUILD/  = %s\n', self.build_final )
         self.infof( 'compute: makevar PREFIX/ = %s\n', self.prefix_final )
+        self.infof( 'compute: makevar DATADIR/= %s\n', self.data_final )
         if build_tuple.match( '*-*-darwin*' ):
             self.infof( 'compute: makevar XCODE.prefix/ = %s\n', self.xcode_prefix_final )
 
@@ -189,6 +191,9 @@ class Configure( object ):
         self.src_dir    = os.path.normpath( options.src )
         self.build_dir  = os.path.normpath( options.build )
         self.prefix_dir = os.path.normpath( options.prefix )
+        if options.datadir is None:
+            options.datadir = os.path.normpath( self.prefix_dir + '/share' )
+        self.data_dir   = os.path.normpath( options.datadir )
         if build_tuple.match( '*-*-darwin*' ) and options.cross is None:
             self.xcode_prefix_dir = os.path.normpath( options.xcode_prefix )
         if options.sysroot != None:
@@ -1351,6 +1356,8 @@ def createCLI( cross = None ):
         help='specify build scratch/output dir [%s]' % (cfg.build_dir) )
     grp.add_argument( '--prefix', default=cfg.prefix_dir, action='store', metavar='DIR',
         help='specify install dir for products [%s]' % (cfg.prefix_dir) )
+    grp.add_argument( '--datadir', default=None, action='store', metavar='DIR',
+        help='specify data dir for products [%s]' % (cfg.data_dir) )
     cli.add_argument_group( grp )
 
     ## add build options
@@ -1610,6 +1617,7 @@ try:
     build_tuple = BuildTupleProbe(); build_tuple.run()
 
     cfg.prefix_dir = '/usr/local'
+    cfg.data_dir   = 'PREFIX/share'
     if build_tuple.match( '*-*-darwin*' ):
         cfg.xcode_prefix_dir = '/Applications'
 
@@ -2070,6 +2078,8 @@ int main()
     doc.add( 'BUILD/',  cfg.build_final + os.sep )
     doc.add( 'PREFIX',  cfg.prefix_final )
     doc.add( 'PREFIX/', cfg.prefix_final + os.sep )
+    doc.add( 'DATADIR', cfg.data_final )
+    doc.add( 'DATADIR/', cfg.data_final + os.sep )
 
     doc.addBlank()
     doc.add( 'SECURITY.sandbox',    int( options.enable_sandbox ))
