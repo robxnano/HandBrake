@@ -1402,7 +1402,7 @@ def createCLI( cross = None ):
     grp.add_argument( '--enable-asm', default=False, action='store_true', help=h )
 
     # GTK GUI is enabled by default on Linux and BSD
-    gtk_default = host_tuple.match( '*-*-linux*', '*-*-*bsd*' )
+    gtk_default = host_tuple.match( '*-*-linux*', '*-*-*bsd*', '*-*-haiku*' )
     h = 'enable GTK GUI' if gtk_supported else argparse.SUPPRESS
     grp.add_argument( '--enable-gtk', dest="enable_gtk", default=gtk_default, action='store_true', help=h)
     h = 'disable GTK GUI' if gtk_supported else argparse.SUPPRESS
@@ -1732,7 +1732,7 @@ try:
     arch       = ArchAction(); arch.run()
 
     # set whether features can be enabled
-    gtk_supported   = host_tuple.match( '*-*-linux*', '*-*-mingw*', '*-*-*bsd*' )
+    gtk_supported   = host_tuple.match( '*-*-linux*', '*-*-mingw*', '*-*-*bsd*', '*-*-haiku*' )
     qsv_supported   = host_tuple.match( '*-*-linux*', 'x86_64-w64-mingw32*', '*-*-freebsd*' )
     nvenc_supported = host_tuple.match( '*-*-linux*', 'x86_64-w64-mingw32*' )
     vce_supported   = host_tuple.match( '*-*-linux*', 'x86_64-w64-mingw32*' )

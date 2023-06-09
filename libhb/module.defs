@@ -108,6 +108,10 @@ ifneq (,$(filter $(HOST.arch),ppc ppc64))
 	LIBHB.GCC.D += WORDS_BIGENDIAN
 endif
 
+ifeq ($(HOST.system),haiku)
+    LIBHB.GCC.l += network
+endif
+
 ###############################################################################
 
 ifeq (1-mingw,$(HOST.cross)-$(HOST.system))
