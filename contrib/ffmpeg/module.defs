@@ -25,6 +25,8 @@ FFMPEG.CONFIGURE.env.LOCAL_PATH = PATH="$(call fn.ABSOLUTE,$(CONTRIB.build/)bin)
 FFMPEG.BUILD.env                = PATH="$(call fn.ABSOLUTE,$(CONTRIB.build/)bin):$(PATH)"
 
 FFMPEG.CONFIGURE.extra = \
+    --disable-asm \
+    --disable-inline-asm \
     --enable-gpl \
     --disable-doc \
     --disable-programs \
