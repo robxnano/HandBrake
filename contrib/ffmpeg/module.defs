@@ -28,6 +28,8 @@ ifneq (,$(filter $(HOST.system),freebsd netbsd openbsd))
 endif
 
 FFMPEG.CONFIGURE.extra = \
+    --disable-asm \
+    --disable-inline-asm \
     --enable-gpl \
     --disable-doc \
     --disable-programs \
