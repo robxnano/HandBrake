@@ -207,11 +207,6 @@ endif
 ## enable compile verbosity
 FFMPEG.BUILD.extra = V=1
 
-## For POSIX.1-2001
-ifeq (solaris,$(HOST.system))
-    FFMPEG.CONFIGURE.extra += --extra-libs=/usr/lib/values-xpg6.o
-endif
-
 ## MPC8 Doesn't compile on SPARC
 ifeq (solaris-sparc,$(HOST.system)-$(HOST.machine))
     FFMPEG.CONFIGURE.extra += --disable-demuxer=mpc8
