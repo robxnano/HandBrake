@@ -59,7 +59,7 @@ ifeq (1,$(FEATURE.qsv))
     endif
 endif
 
-ifneq (,$(filter $(HOST.system),freebsd netbsd openbsd))
+ifneq (,$(filter $(HOST.system),freebsd netbsd openbsd dragonfly))
     LIBHB.GCC.I += $(LOCALBASE)/include
 endif
 
@@ -72,7 +72,7 @@ else ifeq ($(HOST.system),darwin)
     LIBHB.metal += $(wildcard $(LIBHB.src/)platform/macosx/shaders/*.metal)
 else ifeq ($(HOST.system),linux)
     LIBHB.GCC.D += SYS_LINUX _LARGEFILE_SOURCE _FILE_OFFSET_BITS=64
-else ifeq ($(HOST.system),freebsd)
+else ifneq (,$(filter $(HOST.system),freebsd dragonfly))
     LIBHB.GCC.D += SYS_FREEBSD _LARGEFILE_SOURCE _FILE_OFFSET_BITS=64
 else ifeq ($(HOST.system),netbsd)
     LIBHB.GCC.D += SYS_NETBSD _LARGEFILE_SOURCE _FILE_OFFSET_BITS=64

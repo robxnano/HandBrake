@@ -145,7 +145,7 @@ else
     FFMPEG.CONFIGURE.extra += --extra-libs="-lm -lstdc++"
 endif
 
-ifneq (,$(filter $(HOST.system),freebsd netbsd openbsd))
+ifneq (,$(filter $(HOST.system),freebsd netbsd openbsd dragonfly))
     FFMPEG.CONFIGURE.extra += --extra-cflags="-I$(LOCALBASE)/include"
     FFMPEG.CONFIGURE.extra += --extra-ldflags="-L$(LOCALBASE)/lib"
 endif

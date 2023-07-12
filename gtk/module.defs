@@ -84,7 +84,7 @@ else
     GTK.CONFIGURE.extra += -Dflatpak=false
 endif
 
-ifneq (,$(filter $(HOST.system),freebsd netbsd openbsd))
+ifneq (,$(filter $(HOST.system),freebsd netbsd openbsd dragonfly))
     GTK.CONFIGURE.libdirs = -L$(LOCALBASE)/lib
 endif
 
