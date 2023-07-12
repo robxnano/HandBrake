@@ -1,0 +1,15 @@
+diff --git a/meson.build b/meson.build
+index bd29c9857..ee308c1c4 100644
+--- a/meson.build
++++ b/meson.build
+@@ -92,6 +92,9 @@ optional_link_arguments = []
+ if host_machine.system() in ['linux', 'gnu', 'emscripten']
+     test_args += '-D_GNU_SOURCE'
+     add_project_arguments('-D_GNU_SOURCE', language: 'c')
++elif host_machine.system() == 'sunos'
++    test_args += '-D__EXTENSIONS__'
++    add_project_arguments('-D__EXTENSIONS__', language: 'c')
+ endif
+ 
+ if host_machine.system() == 'windows'
+
