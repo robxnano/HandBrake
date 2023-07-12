@@ -1,0 +1,17 @@
+diff --git a/src/bswap.h b/src/bswap.h
+index d3b2383..ecab57f 100644
+--- a/src/bswap.h
++++ b/src/bswap.h
+@@ -104,6 +104,12 @@
+       (((x) & 0x000000000000ff00ULL) << 40) | \
+       (((x) & 0x00000000000000ffULL) << 56))
+
++#elif defined(__HAIKU__)
++#include <os/support/ByteOrder.h>
++#define B2N_16(x) B_BENDIAN_TO_HOST_INT16(x)
++#define B2N_32(x) B_BENDIAN_TO_HOST_INT32(x)
++#define B2N_64(x) B_BENDIAN_TO_HOST_INT64(x)
++
+ #else
+
+ /* If there isn't a header provided with your system with this functionality
