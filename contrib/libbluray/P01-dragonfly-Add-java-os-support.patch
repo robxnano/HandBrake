@@ -1,0 +1,24 @@
+diff --git a/configure.ac b/configure.ac
+index c70163440..4f63157f0 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -258,6 +258,7 @@ case $host_os in
+      darwin*)  java_os=darwin ;;
+      netbsd*)  java_os=netbsd ;;
+      openbsd*) java_os=openbsd ;;
++     dragonfly*) java_os=freebsd ;;
+      *)        java_os=$host_os ;;
+ esac
+ 
+diff --git a/configure b/configure
+index f3b731ed3..95d740a28 100755
+--- a/configure
++++ b/configure
+@@ -15566,6 +15566,7 @@ case $host_os in
+      darwin*)  java_os=darwin ;;
+      netbsd*)  java_os=netbsd ;;
+      openbsd*) java_os=openbsd ;;
++     dragonfly*) java_os=freebsd ;;
+      *)        java_os=$host_os ;;
+ esac
+ 
