@@ -161,9 +161,15 @@ class Configure( object ):
 
         path = os.getenv( 'PATH' ) or os.defpath
         for dir in path.split( os.pathsep ):
-            f = os.path.join( dir, name )
-            if os.access( f, os.X_OK ):
+            f = '%s/%s.exe' % (dir.replace('\\', os.sep), name)
+            if os.access( f, os.R_OK ):
                 return f
+
+        for dir in path.split( os.pathsep ):
+            f = '%s/%s' % (dir.replace('\\', os.sep), name)
+            if os.access( f, os.R_OK ):
+                return f
+
         return None
 
     ## taken from python2.6 -- we need it
@@ -493,13 +499,14 @@ class ChkLib( Action ):
 ##   x86_64-apple-darwin15.6.0  (Mac OS X 10.11.6 Intel)
 ##   x86_64-apple-darwin16.6.0  (macOS 10.12.6 Intel)
 ##   i686-pc-cygwin             (Cygwin, Microsoft Vista)
+##   x86_64-pc-mingw64          (MSYS2, Windows 10 amd64)
 ##   x86_64-unknown-linux-gnu   (Linux, Fedora 10 x86_64)
 ##
 class BuildTupleProbe( ShellProbe, list ):
     GNU_TUPLE_RE = '([^-]+)-?([^-]*)-([^0-9-]+)([^-]*)-?([^-]*)'
 
     def __init__( self ):
-        super( BuildTupleProbe, self ).__init__( 'build tuple', '%s/config.guess' % (cfg.dir), abort=True, head=True )
+        super( BuildTupleProbe, self ).__init__( 'build tuple', 'sh %s/config.guess' % (cfg.dir), abort=True, head=True )
 
     def _parseSession( self ):
         self.spec = self.session[0].decode('utf-8') if self.session else ''
@@ -1097,6 +1104,8 @@ class VersionProbe( Action ):
         super( VersionProbe, self ).__init__( 'version probe', '%s %s' % (os.path.basename(command[0]),'.'.join([str(i) for i in minversion])), abort )
         self.name = name
         self.command = command
+        if build_tuple.match('*-*-mingw*') and self.command[0].find('.exe') <= 0:
+            self.command.insert(0, 'sh')
         self.abort = abort
         self.minversion = minversion
         self.rexprs = [ r'(?P<name>[^.]+)\s+(?P<svers>(?P<i0>\d+)(\.(?P<i1>\d+))?(\.(?P<i2>\d+))?)',
@@ -1270,7 +1279,7 @@ class ConfigDocument:
             raise AbortError( 'failed writing to %s\n%s', ftmp, x )
 
         try:
-            os.rename( ftmp, fname )
+            os.replace( ftmp, fname )
         except Exception as x:
             raise AbortError( 'failed writing to %s\n%s', fname, x )
 
@@ -1305,7 +1314,7 @@ def encodeDistfileConfig():
         raise AbortError( 'failed writing to %s\n%s', ftmp, x )
 
     try:
-        os.rename( ftmp, fname )
+        os.replace( ftmp, fname )
     except Exception as x:
         raise AbortError( 'failed writing to %s\n%s', fname, x )
 
