@@ -210,6 +210,7 @@ class URL(object):
         if content_length and content_length != data_total:
             raise error('expected %d bytes, got %d bytes' % (content_length,data_total))
         s = 'download total: %9d bytes\n' % data_total
+        hout.close()
         if filename:
             s += 'sha256 (%s) = %s' % (filename,hasher.hexdigest())
         else:

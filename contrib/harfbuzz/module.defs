@@ -23,6 +23,10 @@ HARFBUZZ.CONFIGURE.extra      += -DHB_HAVE_FREETYPE=ON \
 
 HARFBUZZ.GCC.args.extra += $(HARFBUZZ.GCC.args.O.$(HARFBUZZ.GCC.O))
 
+ifeq (mingw,$(HOST.system))
+    HARFBUZZ.CONFIGURE.extra += -DCMAKE_GENERATOR="Unix Makefiles"
+endif
+
 ifeq (1,$(HOST.cross))
     ifeq (mingw,$(HOST.system))
         HARFBUZZ.CONFIGURE.extra += -DWIN32=ON -DMINGW=ON

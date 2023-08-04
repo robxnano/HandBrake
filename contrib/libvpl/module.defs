@@ -38,5 +38,9 @@ ifeq (1,$(HOST.cross))
     LIBVPL.CONFIGURE.extra     += -DCMAKE_SYSTEM_PROCESSOR=$(HOST.machine)
 endif
 
+ifeq (mingw,$(HOST.system))
+    LIBVPL.CONFIGURE.extra += -DCMAKE_GENERATOR="Unix Makefiles"
+endif
+
 ## find CMakeLists.txt
 LIBVPL.CONFIGURE.extra += "$(call fn.ABSOLUTE,$(LIBVPL.EXTRACT.dir/))"

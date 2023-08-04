@@ -34,7 +34,7 @@ libhb.clean:
 
 ###############################################################################
 
-ifeq (1-mingw,$(HOST.cross)-$(HOST.system))
+ifeq (mingw,$(HOST.system))
 
 libhb.build: $(LIBHB.dll)
 
