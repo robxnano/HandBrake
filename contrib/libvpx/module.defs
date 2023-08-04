@@ -48,6 +48,6 @@ ifeq (darwin,$(HOST.system))
     endif
 endif
 
-ifeq (1-mingw,$(HOST.cross)-$(HOST.system))
+ifeq (mingw,$(HOST.system))
     LIBVPX.CONFIGURE.extra += --disable-avx512
 endif

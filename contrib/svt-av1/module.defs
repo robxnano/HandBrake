@@ -61,6 +61,10 @@ else
     SVT-AV1.CONFIGURE.args.host  = -DCMAKE_HOST_SYSTEM="$(SVT-AV1.CONFIGURE.host)"
 endif
 
+ifeq (mingw,$(HOST.system))
+    SVT-AV1.CONFIGURE.extra += -DCMAKE_GENERATOR="Unix Makefiles"
+endif
+
 ifeq ($(HOST.system),darwin)
     SVT-AV1.CONFIGURE.extra += -DCMAKE_SYSTEM_PROCESSOR=$(HOST.machine)
     SVT-AV1.CONFIGURE.extra += -DCMAKE_OSX_ARCHITECTURES=$(HOST.machine)

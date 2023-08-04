@@ -125,7 +125,7 @@ endif
 
 ###############################################################################
 
-ifeq (1-mingw,$(HOST.cross)-$(HOST.system))
+ifeq (mingw,$(HOST.system))
 
 LIBHB.dll = $(LIBHB.build/)hb.dll
 LIBHB.lib = $(LIBHB.build/)hb.lib

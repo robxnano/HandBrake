@@ -61,6 +61,10 @@ ifeq (1,$(HOST.cross))
     X265_8.CONFIGURE.args.build = -DCMAKE_SYSTEM_PROCESSOR=$(HOST.machine)
 endif
 
+ifeq (mingw,$(HOST.system))
+    X265_8.CONFIGURE.extra += -DCMAKE_GENERATOR="Unix Makefiles"
+endif
+
 ## find CMakeLists.txt
 X265_8.CONFIGURE.extra += "$(call fn.ABSOLUTE,$(X265_8.EXTRACT.dir/)source/)"
 
