@@ -8,4 +8,11 @@ ZIMG.EXTRACT.tarbase = zimg-release-3.0.5
 
 ZIMG.CONFIGURE.bootstrap = rm -fr aclocal.m4 autom4te.cache configure; autoreconf -fiv;
 
+# workaround for bug in msys2 tar; don't error if mode can't be changed on symlinks
+define ZIMG.EXTRACT
+    $(RM.exe) -fr $(ZIMG.EXTRACT.dir/)
+    -$(TAR.exe) xfC $(ZIMG.FETCH.distfile) $(ZIMG.build/)
+    $(TOUCH.exe) $@
+endef
+
 ZIMG.CONFIGURE.extra += --enable-static --disable-shared
