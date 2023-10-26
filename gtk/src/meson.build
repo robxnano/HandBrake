@@ -23,6 +23,7 @@ ghb_src = files(
   'preview.c',
   'queuehandler.c',
   'resources.c',
+  'server.c',
   'settings.c',
   'subtitlehandler.c',
   'title-add.c',
@@ -30,6 +31,7 @@ ghb_src = files(
   'util.c',
   'values.c',
   'videohandler.c',
+  'worker.c',
 )
 
 config_h = configuration_data()
@@ -53,9 +55,10 @@ ui = gnome.compile_resources('ui_res', 'ui/ui_res.gresource.xml',
 
 # Build targets
 executable('ghb',
-  sources: [ghb_src, data, icons, ui],
+  sources: [ghb_src, data, icons, ui, ghb_rs_headers],
   dependencies: ghb_deps,
   include_directories: hb_incdirs,
+  link_with: ghb_rs,
   link_language: 'cpp',
   link_args: get_option('c_link_args'),
   install: true)

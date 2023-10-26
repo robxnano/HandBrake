@@ -32,6 +32,7 @@
 #include "preview.h"
 #include "queuehandler.h"
 #include "resources.h"
+#include "server.h"
 #include "subtitlehandler.h"
 #include "util.h"
 #include "videohandler.h"
@@ -4201,15 +4202,14 @@ submit_job(signal_user_data_t *ud, GhbValue *queueDict)
     ghb_dict_set_int(uiDict, "job_status", GHB_QUEUE_RUNNING);
     start_new_log(ud, uiDict);
     GhbValue *job_dict = ghb_dict_get(queueDict, "Job");
-    int unique_id = ghb_add_job(ghb_queue_handle(), job_dict);
-    ghb_dict_set_int(uiDict, "job_unique_id", unique_id);
+    ud->worker_pid = ghb_server_start_worker(job_dict);
+    ghb_dict_set_int(uiDict, "job_unique_id", ud->worker_pid);
     time_t now = time(NULL);
     ghb_dict_set_int(uiDict, "job_start_time", now);
-    ghb_start_queue();
-
     // Show queue progress bar
     int index = ghb_find_queue_job(ud->queue, unique_id, NULL);
     ghb_queue_item_set_status(ud, index, GHB_QUEUE_RUNNING);
+    //ghb_queue_progress_set_visible(ud, index, 1);
 }
 
 static void
@@ -4817,7 +4817,7 @@ ghb_log (const char *log, ...)
 
     _now = time(NULL);
     now = localtime( &_now );
-    snprintf(fmt, 362, "[%02d:%02d:%02d] gtkgui: %s\n",
+    snprintf(fmt, 362, "[%02d:%02d:%02d] %s\n",
             now->tm_hour, now->tm_min, now->tm_sec, log);
     va_start(args, log);
     vfprintf(stderr, fmt, args);

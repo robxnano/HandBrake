@@ -18,12 +18,24 @@
  */
 
 #include "application.h"
+#include "ghb_rs.h"
+#include "server.h"
 #include "settings.h"
 #include "ui_res.h"
 
 int
 main (int argc, char *argv[])
 {
+    rust_hello1();
+    g_autofree char *app_cmd = (argc > 0) ? g_strdup(argv[0]) : NULL;
+
+    // Quick redirect to worker process without initializing GUI
+    if (argc > 1 && !g_strcmp0(argv[1], "--worker"))
+        return ghb_worker_main(argc, argv);
+
+    if (argc > 0)
+        app_cmd = g_strdup(argv[0]);
+
 #if defined(_WIN32)
     // Tell gdk pixbuf where it's loader config file is.
     _putenv_s("GDK_PIXBUF_MODULE_FILE", "ghb.exe.local/loaders.cache");
@@ -33,7 +45,6 @@ main (int argc, char *argv[])
     bind_textdomain_codeset(GETTEXT_PACKAGE, "UTF-8");
     textdomain(GETTEXT_PACKAGE);
 
-    g_autofree char *app_cmd = (argc > 0) ? g_strdup(argv[0]) : NULL;
     g_autoptr(GApplication) app = G_APPLICATION(ghb_application_new(app_cmd));
     return g_application_run(app, argc, argv);
 }
