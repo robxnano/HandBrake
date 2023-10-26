@@ -105,7 +105,7 @@ battery_level_cb (GDBusProxy *proxy, GVariant *changed_properties,
         && !(queue_state & GHB_STATE_PAUSED))
     {
         power_state = GHB_POWER_PAUSED_LOW_BATTERY;
-        ghb_log("Battery level %d%%: pausing encode", battery_level);
+        ghb_log("hb-power: Battery level %d%%, pausing encode", battery_level);
         ghb_send_notification(GHB_NOTIFY_PAUSED_LOW_BATTERY, 0, ud);
         ghb_pause_queue();
     }
@@ -116,7 +116,7 @@ battery_level_cb (GDBusProxy *proxy, GVariant *changed_properties,
         if (queue_state & GHB_STATE_PAUSED)
         {
             ghb_resume_queue();
-            ghb_log("Battery level %d%%: resuming encode", battery_level);
+            ghb_log("hb-power: Battery level %d%%, resuming encode", battery_level);
             ghb_withdraw_notification(GHB_NOTIFY_PAUSED_LOW_BATTERY);
         }
         power_state = GHB_POWER_OK;
@@ -184,7 +184,7 @@ upower_status_cb (GDBusProxy *proxy, GVariant *changed_properties,
                    && !(queue_state & GHB_STATE_PAUSED))
     {
         power_state = GHB_POWER_PAUSED_ON_BATTERY;
-        ghb_log("Charger disconnected: pausing encode");
+        ghb_log("hb-power: Charger disconnected, pausing encode");
         ghb_send_notification(GHB_NOTIFY_PAUSED_ON_BATTERY, 0, ud);
         ghb_pause_queue();
     }
@@ -193,7 +193,7 @@ upower_status_cb (GDBusProxy *proxy, GVariant *changed_properties,
         if (queue_state & GHB_STATE_PAUSED)
         {
             ghb_resume_queue();
-            ghb_log("Charger connected: resuming encode");
+            ghb_log("hb-power: Charger connected, resuming encode");
             ghb_withdraw_notification(GHB_NOTIFY_PAUSED_ON_BATTERY);
         }
         power_state = GHB_POWER_OK;
@@ -248,7 +248,7 @@ power_save_cb (GPowerProfileMonitor *monitor, GParamSpec *pspec,
                    && !(queue_state & GHB_STATE_PAUSED))
     {
         power_state = GHB_POWER_PAUSED_POWER_SAVE;
-        ghb_log("Power saver enabled: pausing encode");
+        ghb_log("Power saver enabled, pausing encode");
         ghb_pause_queue();
         ghb_send_notification(GHB_NOTIFY_PAUSED_POWER_SAVE, 0, ud);
     }
@@ -257,7 +257,7 @@ power_save_cb (GPowerProfileMonitor *monitor, GParamSpec *pspec,
         if (queue_state & GHB_STATE_PAUSED)
         {
             ghb_resume_queue();
-            ghb_log("Power saver disabled: resuming encode");
+            ghb_log("hb-power: Power saver disabled, resuming encode");
             ghb_withdraw_notification(GHB_NOTIFY_PAUSED_POWER_SAVE);
         }
         power_state = GHB_POWER_OK;

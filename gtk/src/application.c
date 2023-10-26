@@ -31,6 +31,7 @@
 #include "preview.h"
 #include "queuehandler.h"
 #include "resources.h"
+#include "server.h"
 #include "subtitlehandler.h"
 #include "ui_res.h"
 #include "util.h"
@@ -743,6 +744,7 @@ ghb_application_constructed (GObject *object)
     g_application_set_application_id(G_APPLICATION(self), "fr.handbrake.ghb");
     g_set_prgname("fr.handbrake.ghb");
     g_set_application_name("HandBrake");
+    ghb_set_process_name("handbrake-gui");
     g_application_set_flags(G_APPLICATION(self), G_APPLICATION_HANDLES_OPEN |
                                                  G_APPLICATION_NON_UNIQUE);
 }
@@ -798,6 +800,7 @@ ghb_application_activate (GApplication *app)
 
     // Initialize D-Bus connections to monitor power settings
     ghb_power_manager_init(ud);
+    ghb_server_socket_init();
 
     // Enable drag & drop in queue list
     ghb_queue_drag_n_drop_init(ud);
@@ -1035,6 +1038,8 @@ ghb_application_shutdown (GApplication *app)
     g_object_unref(ud->activity_buffer);
     g_clear_pointer(&ud->extra_activity_path, g_free);
     ghb_preview_dispose(ud);
+
+    ghb_server_socket_shutdown();
 
     g_free(ud->current_dvd_device);
     g_free(self->ud);

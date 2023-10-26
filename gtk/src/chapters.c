@@ -365,13 +365,13 @@ chapter_list_import_xml (const gchar *file, signal_user_data_t *ud)
     doc = xmlParseFile(file);
     if (!doc)
     {
-        ghb_log("Could not open file %s", file);
+        ghb_log("hb-gtk: Could not open file %s", file);
         return FALSE;
     }
     node = xmlDocGetRootElement(doc);
     if (node == NULL || xmlStrcmp(node->name, (const xmlChar *) "Chapters"))
     {
-        ghb_log("%s is not a valid Matroska XML file.", file);
+        ghb_log("hb-gtk: %s is not a valid Matroska XML file.", file);
         xmlFreeDoc(doc);
         return FALSE;
     }
@@ -393,7 +393,7 @@ chapter_list_import_xml (const gchar *file, signal_user_data_t *ud)
     chapter_list = xml_get_all_paths(doc, node, "./ChapterAtom");
     if (chapter_list == NULL)
     {
-        ghb_log("%s has no chapters.", file);
+        ghb_log("hb-gtk: %s has no chapters.", file);
         xmlFreeDoc(doc);
         return FALSE;
     }

@@ -424,7 +424,7 @@ ghb_preset_to_settings(GhbValue *settings, GhbValue *preset)
             }
             else
             {
-                ghb_log("Superfluous tunes! %s", tok);
+                ghb_log("hb-gtk: Superfluous tunes! %s", tok);
             }
             tok = strtok_r(NULL, ",./-+", &saveptr);
         }
@@ -1951,10 +1951,10 @@ ghb_presets_load(signal_user_data_t *ud)
 
         hb_presets_current_version(&major, &minor, &micro);
         name = g_strdup_printf("presets.%d.%d.%d.json", major, minor, micro);
-        ghb_log("Failed to read presets file, trying backup (%s)...", name);
+        ghb_log("hb-gtk: Failed to read presets file, trying backup (%s)...", name);
         if (presets_add_config_file(name) < 0)
         {
-            ghb_log("Failed to read backup presets, using defaults...");
+            ghb_log("hb-gtk: Failed to read backup presets, using defaults...");
             hb_presets_builtin_update();
             // Don't store defaults unless the user explicitly saves
             // a new preset.  This would overwrite the presets file
@@ -1966,7 +1966,7 @@ ghb_presets_load(signal_user_data_t *ud)
     {
         if (presets_add_config_file("presets") < 0)
         {
-            ghb_log("Failed to read presets file, initializing new presets...");
+            ghb_log("hb-gtk: Failed to read presets file, initializing new presets...");
             hb_presets_builtin_update();
             store_presets();
         }

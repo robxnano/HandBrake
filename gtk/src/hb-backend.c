@@ -27,6 +27,7 @@
 #include "jobdict.h"
 #include "presets.h"
 #include "preview.h"
+#include "server.h"
 #include "subtitlehandler.h"
 #include "title-add.h"
 #include "videohandler.h"
@@ -1208,17 +1209,11 @@ const iso639_lang_t* ghb_iso639_lookup_by_int(int idx)
 
 // Handle for libhb.  Gets set by ghb_backend_init()
 static hb_handle_t * h_scan = NULL;
-static hb_handle_t * h_queue = NULL;
 static hb_handle_t * h_live = NULL;
 
 hb_handle_t* ghb_scan_handle(void)
 {
     return h_scan;
-}
-
-hb_handle_t* ghb_queue_handle(void)
-{
-    return h_queue;
 }
 
 hb_handle_t* ghb_live_handle(void)
@@ -2500,6 +2495,7 @@ ghb_get_title_dict(int title_id)
     return hb_title_to_dict(h_scan, title_id);
 }
 
+/*
 int
 ghb_lookup_queue_title_index(int title_id)
 {
@@ -2511,6 +2507,7 @@ ghb_lookup_queue_title(int title_id, int *index)
 {
     return lookup_title(h_queue, title_id, index);
 }
+*/
 
 static void
 video_tune_opts_set(signal_user_data_t *ud, const gchar *name,
@@ -3472,7 +3469,7 @@ ghb_backend_init(gint debug)
 {
     /* Init libhb */
     h_scan = hb_init( debug );
-    h_queue = hb_init( debug );
+    //h_queue = hb_init( debug );
     h_live = hb_init( debug );
 }
 
@@ -3480,7 +3477,7 @@ void
 ghb_log_level_set(int level)
 {
     hb_log_level_set(h_scan, level);
-    hb_log_level_set(h_queue, level);
+//  hb_log_level_set(h_queue, level);
     hb_log_level_set(h_live, level);
 }
 
@@ -3489,8 +3486,8 @@ ghb_backend_close (void)
 {
     if (h_live != NULL)
         hb_close(&h_live);
-    if (h_queue != NULL)
-        hb_close(&h_queue);
+//  if (h_queue != NULL)
+//      hb_close(&h_queue);
     if (h_scan != NULL)
         hb_close(&h_scan);
     hb_global_close();
@@ -3590,6 +3587,7 @@ ghb_get_scan_state (void)
     return hb_status.scan.state;
 }
 
+
 gint
 ghb_get_queue_state (void)
 {
@@ -3632,8 +3630,8 @@ ghb_get_status(ghb_status_t *status)
     memcpy(status, &hb_status, sizeof(ghb_status_t));
 }
 
-static void
-update_status(hb_state_t *state, ghb_instance_status_t *status)
+void
+ghb_update_status (hb_state_t *state, ghb_instance_status_t *status)
 {
     status->unique_id   = state->sequence_id;
 
@@ -3741,11 +3739,11 @@ ghb_track_status (void)
 
     if (h_scan == NULL) return;
     hb_get_state( h_scan, &state );
-    update_status(&state, &hb_status.scan);
-    hb_get_state( h_queue, &state );
-    update_status(&state, &hb_status.queue);
+    ghb_update_status(&state, &hb_status.scan);
+    ghb_server_get_worker_state(0, &state);
+    ghb_update_status(&state, &hb_status.queue);
     hb_get_state( h_live, &state );
-    update_status(&state, &hb_status.live);
+    ghb_update_status(&state, &hb_status.live);
 }
 
 hb_audio_config_t*
@@ -4694,9 +4692,11 @@ ghb_add_job(hb_handle_t *h, GhbValue *job_dict)
     return sequence_id;
 }
 
+
 void
 ghb_remove_job(gint unique_id)
 {
+    /*
     hb_job_t * job;
     gint ii;
 
@@ -4709,18 +4709,13 @@ ghb_remove_job(gint unique_id)
         if (job->sequence_id == unique_id)
             hb_rem(h_queue, job);
     }
-}
-
-void
-ghb_start_queue (void)
-{
-    hb_start( h_queue );
+    */
 }
 
 void
 ghb_stop_queue (void)
 {
-    hb_stop( h_queue );
+    ghb_server_stop_job(ghb_ud()->worker_pid);
 }
 
 void
@@ -4739,23 +4734,20 @@ void
 ghb_pause_queue (void)
 {
     hb_status.queue.state |= GHB_STATE_PAUSED;
-    hb_pause( h_queue );
+    ghb_server_pause_job(ghb_ud()->worker_pid);
 }
 
 void
 ghb_resume_queue (void)
 {
     hb_status.queue.state &= ~GHB_STATE_PAUSED;
-    hb_resume( h_queue );
+    ghb_server_resume_job(ghb_ud()->worker_pid);
 }
 
 void
 ghb_pause_resume_queue (void)
 {
-    hb_state_t s;
-    hb_get_state2( h_queue, &s );
-
-    if( s.state == HB_STATE_PAUSED )
+    if (hb_status.queue.state & GHB_STATE_PAUSED)
     {
         ghb_resume_queue();
     }
