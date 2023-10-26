@@ -62,6 +62,8 @@ typedef struct
     GtkTextBuffer       * extra_activity_buffer;
     char                * extra_activity_path;
     preview_t           * preview;
+    pid_t                 worker_pid;
+    GSocket             * server_socket;
 } signal_user_data_t;
 
 enum

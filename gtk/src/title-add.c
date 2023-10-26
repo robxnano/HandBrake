@@ -402,7 +402,7 @@ add_multiple_titles (signal_user_data_t *ud)
         if (ghb_dict_get_bool(settings, "title_selected") &&
             !ghb_add_title_to_queue(ud, settings, 1))
         {
-            ghb_log("Validation failed. Could not add all titles to queue.");
+            ghb_log("hb-gtk: Validation failed. Could not add all titles to queue.");
             break;
         }
     }

@@ -1,7 +1,7 @@
 # Copyright (C) 2023-2024 HandBrake Team
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-project('handbrake-gtk', 'c', 'cpp',
+project('handbrake-gtk', 'c', 'cpp', 'rust',
   version: run_command('data/version.py', check: true).stdout().strip(),
   license: 'GPL-2.0-only',
   meson_version: '>= 0.51.0',
@@ -21,7 +21,7 @@ if hb_dir == ''
 endif
 
 hb_libdirs = [hb_dir / 'libhb', hb_dir / 'contrib/lib']
-hb_incdirs = include_directories(hb_dir / 'libhb', hb_dir / 'contrib/include')
+hb_incdirs = include_directories(hb_dir / 'libhb', hb_dir / 'contrib/include', 'rust')
 
 if host_machine.system() == 'windows'
   win_libdirs = { 'dirs': hb_libdirs }
@@ -40,10 +40,6 @@ ghb_deps = [
   dependency('dav1d'),
   dependency('SvtAv1Enc'),
   dependency('fribidi'),
-  dependency('glib-2.0', version: glib_min),
-  dependency('gio-2.0', version: glib_min),
-  dependency('gthread-2.0', version: glib_min),
-  dependency('gmodule-2.0', version: glib_min),
   dependency('gtk4', version: gtk_min),
   dependency('jansson'),
   dependency('libass'),
@@ -71,6 +67,15 @@ ghb_deps = [
   dependency('zimg'),
   dependency('zlib'),
 ]
+
+glib = dependency('glib-2.0', version: glib_min)
+ghb_deps += [glib,
+  dependency('gio-2.0'),
+  dependency('gthread-2.0'),
+  dependency('gmodule-2.0')]
+if glib.version().version_compare('< 2.72.0')
+  ghb_deps += dependency('gio-unix-2.0')
+endif
 
 if get_option('libdovi').enabled()
   ghb_deps += dependency('dovi')
@@ -161,4 +166,5 @@ add_project_link_arguments(link_args, language: ['c', 'cpp'])
 subdir('po')
 subdir('icons')
 subdir('data')
+subdir('rust')
 subdir('src')
