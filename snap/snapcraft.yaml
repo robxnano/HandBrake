@@ -1,0 +1,145 @@
+name: handbrake
+adopt-info: handbrake
+grade: stable
+confinement: strict
+base: core22
+compression: lzo
+architectures:
+  - build-on: amd64
+  - build-on: arm64
+
+apps:
+  handbrake:
+    command: usr/bin/ghb
+    common-id: fr.handbrake.ghb.desktop
+    desktop: usr/share/applications/fr.handbrake.ghb.desktop
+    extensions: [gnome]
+    plugs:
+      - home
+      - removable-media
+      - screen-inhibit-control
+      - shutdown
+      - upower-observe
+    environment:
+      GDK_DEBUG: portals
+      LIBVA_DRIVERS_PATH: $SNAP/intel-plugin/lib/${CRAFT_ARCH_TRIPLET_BUILD_FOR}/dri
+      LD_LIBRARY_PATH: $LD_LIBRARY_PATH:$SNAP/intel-plugin/lib/${CRAFT_ARCH_TRIPLET_BUILD_FOR}
+  cli:
+    command: usr/bin/HandBrakeCLI
+    common-id: fr.handbrake.HandBrakeCLI
+    extensions: [gnome]
+    plugs:
+      - home
+      - removable-media
+    environment:
+      LIBVA_DRIVERS_PATH: $SNAP/intel-plugin/lib/${CRAFT_ARCH_TRIPLET_BUILD_FOR}/dri
+      LD_LIBRARY_PATH: $LD_LIBRARY_PATH:$SNAP/intel-plugin/lib/${CRAFT_ARCH_TRIPLET_BUILD_FOR}
+
+# Allows plugins for hardware acceleration to be mounted
+plugs:
+  intel-0-2204: # plugin_name-api_version-ubuntu_base
+    interface: content
+    content: intel-0-2204
+    target: $SNAP/intel-plugin/lib
+
+parts:
+  # cargo-c is not in Ubuntu 22.04 so use rustup to install the toolchain
+  rust-toolchain:
+    plugin: nil
+    override-pull: |
+      craftctl default
+      curl https://sh.rustup.rs -sSf | sh -s -- -y --profile minimal
+    override-build: |
+      source "$HOME/.cargo/env"
+      craftctl default
+      cargo install cargo-c
+    build-packages:
+      - libssl-dev
+      - pkg-config
+      - zlib1g-dev
+    prime:
+      - -**/*
+
+  handbrake:
+    after: [rust-toolchain]
+    source-type: git
+    source: https://github.com/HandBrake/HandBrake.git
+    parse-info: [usr/share/metainfo/fr.handbrake.ghb.metainfo.xml]
+    plugin: make
+    build-environment:
+      - CFLAGS: '-I/snap/gnome-42-2204-sdk/current/usr/include'
+    override-pull: |
+      craftctl default
+      craftctl set version="`gtk/data/version.sh`"
+    override-build: |
+      source "$HOME/.cargo/env"
+      cd ..
+      rm -rf build
+      mkdir -p build
+      cd build
+      if [ "$CRAFT_ARCH_BUILD_FOR" = "amd64" ]; then
+        FLAG_QSV=--enable-qsv
+      else
+        FLAG_QSV=--disable-qsv
+      fi
+      ${CRAFT_PART_SRC}/configure --snap --prefix=/usr "$FLAG_QSV" --enable-nvenc --enable-nvdec --enable-vce --enable-libdovi
+      craftctl default
+    build-packages:
+      - autoconf
+      - automake
+      - autopoint
+      - clang
+      - cmake
+      - curl
+      - libbz2-dev
+      - libicu-dev
+      - libjansson-dev
+      - libmp3lame-dev
+      - libnuma-dev
+      - libopus-dev
+      - libspeex-dev
+      - libtheora-dev
+      - libtool
+      - libtool-bin
+      - libturbojpeg0-dev
+      - libvorbis-dev
+      - libvpx-dev
+      - libx264-dev
+      - nasm
+    prime:
+      - -usr/etc
+      - -usr/include
+      - -usr/lib/*/cmake
+      - -usr/lib/*/lib*.a
+      - -usr/lib/*/lib*.la
+      - -usr/lib/*/lib*.so
+      - -usr/lib/*/pkgconfig
+      - -usr/lib/pkgconfig
+      - -usr/share/doc
+      - -usr/share/ffmpeg
+      - -usr/share/vpl
+
+  libraries:
+    plugin: nil
+    stage-packages:
+      - libjansson4
+      - libnuma1
+      - libturbojpeg
+      - libx264-163
+    prime:
+      - usr/lib/*/libjansson.so.*
+      - usr/lib/*/libnuma.so.*
+      - usr/lib/*/libturbojpeg.so.*
+      - usr/lib/*/libx264.so.*
+
+  # Find files provided by the base and platform snap and ensure they aren't
+  # duplicated in this snap
+  cleanup:
+    after: [libraries]
+    plugin: nil
+    build-snaps: [core22, gtk-common-themes, gnome-42-2204]
+    override-prime: |
+      set -eux
+      for snap in "core22" "gtk-common-themes" "gnome-42-2204"; do
+        cd "/snap/$snap/current" && find . -type f,l -name *.so.* -exec rm -f "$CRAFT_PRIME/{}" \;
+      done
