@@ -12,7 +12,7 @@ LIBASS.FETCH.url    += https://github.com/libass/libass/releases/download/0.17.1
 LIBASS.FETCH.sha256  = d653be97198a0543c69111122173c41a99e0b91426f9e17f06a858982c2fb03d
 
 # Tell configure where to find our versions of these libs
-ifneq (1,$(FEATURE.flatpak))
+ifeq (0-0,$(FEATURE.flatpak)-$(FEATURE.snap))
 LIBASS.CONFIGURE.extra = \
     HARFBUZZ_LIBS="-L$(call fn.ABSOLUTE,$(CONTRIB.build/))lib -lharfbuzz" \
     HARFBUZZ_CFLAGS="-I$(call fn.ABSOLUTE,$(CONTRIB.build/))include/harfbuzz" \
@@ -23,7 +23,7 @@ endif
 ifeq (,$(filter $(HOST.system),darwin cygwin mingw))
     # Tell configure where to find our version of fontconfig
     LIBASS.CONFIGURE.extra += --enable-fontconfig
-ifneq (1,$(FEATURE.flatpak))
+ifeq (0-0,$(FEATURE.flatpak)-$(FEATURE.snap))
     LIBASS.CONFIGURE.extra += \
         FONTCONFIG_LIBS="-L$(call fn.ABSOLUTE,$(CONTRIB.build/))lib -lfontconfig" \
         FONTCONFIG_CFLAGS="-I$(call fn.ABSOLUTE,$(CONTRIB.build/))include"
