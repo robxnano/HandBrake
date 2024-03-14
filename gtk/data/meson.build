@@ -15,7 +15,7 @@ desktop = i18n.merge_file(
 
 metainfo_conf = configuration_data()
 metainfo_conf.set('RELEASE_TAG', meson.project_version())
-metainfo_conf.set('RELEASE_DATE', run_command('version.py', 'date', check: true).stdout().strip())
+metainfo_conf.set('RELEASE_DATE', run_command('../../scripts/version.py', 'date', check: true).stdout().strip())
 
 metainfo_in = configure_file(
   input: 'fr.handbrake.ghb.metainfo.xml.in.in',
