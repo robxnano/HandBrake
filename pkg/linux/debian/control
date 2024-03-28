@@ -2,29 +2,27 @@ Source: handbrake
 Section: graphics
 Priority: optional
 Maintainer: John Stebbins <jstebbins.hb@gmail.com>
-Build-Depends: debhelper (>= 6), autotools-dev, libtool, autoconf, yasm (>= 0.7.0), libbz2-dev, zlib1g-dev, libwebkit-dev, libnotify-dev, libgstreamer0.10-dev, libgstreamer-plugins-base0.10-dev, wget, subversion, python (>= 2.6), libfribidi-dev (>=0.19.0)
-Standards-Version: 3.8.4
+Build-Depends: debhelper (>= 13), appstream, autoconf, automake, build-essential, cmake, desktop-file-utils, gettext, git, libass-dev, libbz2-dev, libdrm-dev, libfontconfig-dev, libfreetype6-dev, libfribidi-dev, libgstreamer1.0-dev, libgtk-4-dev, libharfbuzz-dev, libjansson-dev, liblzma-dev, libmp3lame-dev, libnuma-dev, libogg-dev, libopus-dev, libspeex-dev, libtheora-dev, libtool, libtool-bin, libturbojpeg0-dev, libva-dev, libvorbis-dev, libx264-dev, libxml2-dev, libvpx-dev, m4, make, meson, nasm, ninja-build, patch, pkg-config, tar, zlib1g-dev
+Standards-Version: 4.6.2
 Homepage: http://www.handbrake.fr/
 
 Package: handbrake-cli
-Architecture: i386 amd64
+Architecture: amd64 aarch64
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Conflicts: handbrake
 Description: versatile DVD ripper and video transcoder - command line
- HandBrake is a versatile, easy-to-use tool for converting DVDs and other videos
- into H.264, MPEG-4, or OGG formatted media. It's particularly useful for making
- videos that are compatible with portable video devices such as the Apple
- iPod/iPhone. This package contains the command-line variant,
- HandBrakeCLI
+ HandBrake is a versatile, easy-to-use tool for converting video from nearly any
+ format to a selection of modern, widely supported codecs. This package contains
+ the command-line variant, HandBrakeCLI.
 
 Package: handbrake-gtk
-Architecture: i386 amd64
-Depends: ${shlibs:Depends}, ${misc:Depends}, libwebkit-1.0-2, libnotify1
+Architecture: amd64 aarch64
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Suggests: libgtk-4-media-gstreamer
 Conflicts: handbrake
 Description: versatile DVD ripper and video transcoder - GTK GUI
- HandBrake is a versatile, easy-to-use tool for converting DVDs and other videos
- into H.264, MPEG-4, or OGG formatted media. It's particularly useful for making
- videos that are compatible with portable video devices such as the Apple
- iPod/iPhone. This package contains the graphical variant, ghb.
+ HandBrake is a versatile, easy-to-use tool for converting video from nearly any
+ format to a selection of modern, widely supported codecs. This package contains
+ the graphical variant, ghb.
 
 
