@@ -12,7 +12,7 @@ pkg.create.src.deb:: $(PKG.src.deb.stamp)
 pkg.create.tar:: pkg.create $(PKG.cli.tar)
 mediasdk:: $(PKG.mediasdk.flatpak)
 
-DEBIAN_CHANGELOG_DATE = $(shell date -R)
+DEBIAN_CHANGELOG_DATE = $(shell date -d "$(HB.repo.date) +0000")
 
 #
 # CLI Tar Package
@@ -113,23 +113,18 @@ $(PKG.mediasdk.flatpak): GNUmakefile $(PKG.mediasdk.template.flatpak) $(PKG.gui.
 #
 # Debian binary package rules
 #
-$(PKG.gui.tmp.deb): | $(dir $(PKG.gui.tmp.deb))
-$(PKG.gui.tmp.deb): GNUmakefile
+$(PKG.gui.deb): | $(dir $(PKG.gui.deb))
+$(PKG.gui.deb): GNUmakefile
 	-$(RM.exe) $(SRC/)debian
 	ln -s $(PKG.debian) $(SRC/)debian
 	fakeroot $(MAKE) -C $(SRC/) -f debian/rules clean
 	$(MAKE) BUILDDIR=$(abspath $(BUILD)) CONFIGURE=configure -C $(SRC/) -f debian/rules build
 	echo $(PKG.out.abs/)
-	fakeroot $(MAKE) FORCEVERSION="-- -v$(HB.debversion)" BUILDDIR=$(abspath $(BUILD)) CONFIGURE=configure PKGDESTDIR=$(PKG.out.abs/ -C $(SRC/) -f debian/rules binary
+	fakeroot $(MAKE) FORCEVERSION="-- -v$(HB.debversion)" BUILDDIR=$(abspath $(BUILD)) CONFIGURE=configure \
+	         PKGDESTDIR=$(PKG.out.abs/) -C $(SRC/) -f debian/rules binary
 
-
-$(PKG.gui.deb): | $(dir $(PKG.gui.deb))
-$(PKG.gui.deb): $(PKG.gui.tmp.deb)
-	$(MV.exe) $(PKG.gui.tmp.deb) $(PKG.gui.deb)
-
-$(PKG.cli.deb): | $(dir $(PKG.cli.deb))
-$(PKG.cli.deb): $(PKG.gui.tmp.deb)
-	$(MV.exe) $(PKG.cli.tmp.deb) $(PKG.cli.deb)
+$(PKG.cli.deb): $(PKG.gui.deb)
+$(PKG.gui.dbgsym.deb): $(PKG.gui.deb)
 
 #
 # Debian source package rules

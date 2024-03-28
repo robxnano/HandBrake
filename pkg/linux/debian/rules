@@ -26,12 +26,12 @@ FORCEVERSION =
 
 $(BUILDDIR)/GNUmakefile: $(CONFIGURE)
 	dh_testdir
-	unset CFLAGS; unset CPPLAGS; unset CXXLAGS; $(CONFIGURE) --disable-gtk-update-checks --prefix=/usr
+	unset CFLAGS; unset CPPFLAGS; unset CXXFLAGS; $(CONFIGURE) --enable-qsv --enable-vce --enable-nvenc --prefix=/usr
 
 build:  $(BUILDDIR)/GNUmakefile
 	dh_testdir
 	#We must build both the main project and the GTK project
-	unset CFLAGS ; unset CPPLAGS ; unset CXXLAGS; $(MAKE) -C $(BUILDDIR)
+	unset CFLAGS ; unset CPPFLAGS ; unset CXXFLAGS; $(MAKE) -C $(BUILDDIR)
 
 clean: 
 	dh_testdir
@@ -79,7 +79,7 @@ binary-arch: build install
 	dh_shlibdeps -a
 	dh_gencontrol -a $(FORCEVERSION)
 	dh_md5sums -a
-	dh_builddeb -a --destdir=$(PKGDESTDIR) -- -Zbzip2
+	dh_builddeb -a --destdir=$(PKGDESTDIR) -- -Zxz
 
-binary: binary-indep binary-arch
+binary: binary-arch
 .PHONY: build clean binary-indep binary-arch binary install 

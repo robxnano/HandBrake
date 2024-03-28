@@ -977,10 +977,8 @@ class Project( Action ):
             if repo.branch != '':
                 self.version += '-%s' % (repo.branch)
 
-            self.debversion = repo.date.strftime("%Y%m%d%H%M%S")
-            self.debversion += '-%s' % (repo.shorthash)
-            if repo.branch != '':
-                self.debversion += '-%s' % (repo.branch)
+            self.debversion = repo.date.strftime("%Y%m%d")
+            self.debversion += '+git%s-1' % (repo.shorthash)
 
             url_ctype = '_unstable'
             url_ntype = 'unstable'
@@ -991,7 +989,7 @@ class Project( Action ):
             if not m:
                 # Regular release
                 self.version = '%d.%d.%d' % (self.vmajor,self.vminor,self.vpoint)
-                self.debversion = '%d.%d.%d' % (self.vmajor, self.vminor, self.vpoint)
+                self.debversion = '%d.%d.%d-1' % (self.vmajor, self.vminor, self.vpoint)
                 url_ctype = ''
                 url_ntype = 'stable'
             else:
@@ -999,7 +997,7 @@ class Project( Action ):
                 self.special = special
                 self.spoint = int(spoint)
                 self.version = '%d.%d.%d-%s.%d' % (self.vmajor,self.vminor,self.vpoint, self.special, self.spoint)
-                self.debversion = '%d.%d.%d~%s.%d' % (self.vmajor, self.vminor, self.vpoint, self.special, self.spoint)
+                self.debversion = '%d.%d.%d~%s.%d-1' % (self.vmajor, self.vminor, self.vpoint, self.special, self.spoint)
                 url_ctype = '_unstable'
                 url_ntype = 'unstable'
 

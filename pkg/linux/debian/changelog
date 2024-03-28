@@ -1,100 +1,80 @@
-handbrake (svn2573) jaunty; urgency=low
+handbrake (1.6.1-1) bookworm; urgency=low
   * CORE
-   - Allows sources with no audio to be encoded
-   - TrueHD and DTS-HD demuxing
-   - Transport stream improvements
-   - Better reading of audio source parameters
-   - Support for 8-bit audio sources
-   - Fixed 5.1 Vorbis channel maps
-   - Better DTS handling
-   - Better VC1 handling
-   - Better frame synchronization validation
-   - Better identification of valid tracks in streams
-   - Better handle of New Zealand FreeView broadcasts
-   - Avoids a crash when a user tries to encode the same audio multiple times with file inputs, a big problem with the Universal and AppleTV presets
-   - Preserves metadata when encoding MP4 sources
-   - Avoids libavcodec threading issue by better locking
-   - Fixes aspect ratio rounding bug
-   - ffmpeg libraries update, libmp4v2 update, libx264 update
-   - Other assorted improvements
-       
-  * MAC
-   - Live preview encoding
-   - Picture settings split off to its own window instead of a sheet, with a button in the toolbar
-   - Variable number of preview images, default is now 30 not 10
-   - Logging level preference
-   - On launch preference for whether or not to show Open Source window
-   - Autocrop re-enabled for AppleTV Legacy preset
-   - Support dropped for user presets generated in 0.9.2 or earlier
-   - Correct dates for single-serving activity logs
-   - Fixes issue where changing format reset video codec selection
-   - Other assorted interface enhancements and bug fixes
-       
-  * WIN
-   - XML-based queue system
-   - Removed RAM limitation
-   - Better memory alignment in Cygwin
-   - Other assorted interface enhancements and bug fixes
+   - Fixed a potential decoder issue that could cause desync with audio
    
-  * LIN
-   - Live preview encoding
-   - Picture settings split off to its own window with a button in the toolbar
-   - Variable number of preview images, default is now 30 not 10
-   - Interface improvements
-   - Logging level preference
-   - Other assorted interface enhancements and bug fixes
+  * LINUX
+   - Fixed translations missing updates as part of 1.6.0
+   - Bulgarian (Български)
+   - Corsican (Corsu)
+   - Dutch (Nederlands)
+   - German (Deutsch)
+   - Spanish (Español)
+   - Fixed (partially) Intel QSV hardware detection
+   - Fixed a potential crash when canceling an Intel QSV encode
+   - Fixed building with -Werror=format-security by adding missing format strings where needed
    
   * CLI
-   - Added a --previews option to control how many preview images are scanned and whether or not they're written to disk (now defaults to not storing them) 
+   - Fixed inability to name external subtitles tracks using --subname
 
- -- John Stebbins <jstebbins.hb@gmail.com>  Sun, 21 Dec 2008 9:51:07 -0800
+ -- John Stebbins <jstebbins.hb@gmail.com>  Sun, 22 Jan 2023 11:35:57 -0500
 
-handbrake (0.9.3+repack1-0ubuntu0~8.04jdong4) hardy; urgency=low
+handbrake (1.6.0-1) bookworm; urgency=low
+  * CORE
+   - Added AV1 video encoding
+   - Added high bit depth and color depth support to various encoders and filters
+   - Added 4K AV1 General, QSV (Hardware), and MKV (Matroska) presets
+   - Added 4K HEVC General presets and updated related presets to use similar encoder settings
+   - Revised Web presets and renamed to Creator, Email, and Social
+   - Removed VP8 presets
+   - The VP8 video encoder is now deprecated and will be removed in a future release
+   - Related, the Theora encoder is long deprecated and will be removed in a future release
+   - Miscellaneous other preset revisions
 
-  * Incorporate fixes suggested by John Stebbins:
-   - Don't have the buildsys override HB's optimized CFLAGS
-   - Do an official build (not a snapshot)
-   - dh_icons/dh_desktop to correctly install menu icon
+  * VIDEO
+   - Added SVT-AV1 (software) and Intel QSV AV1 (hardware) video encoders
+   - Added VP9 10-bit encoder
+   - Added NVENC HEVC 10-bit encoder
+   - Added VCN HEVC 10-bit encoder
+   - Added H.264 levels 6, 6.1, and 6.2 for the x264 encoder
+   - Added H.264/H.265 4:2:2 and 4:4:4 profiles for the x264 and x265 encoders
+   - Added H.265 4:2:2 profile for VideoToolbox encoder on Apple Silicon
+   - Added support for Intel Deep Link Hyper Encode (leverage multiple QSV media engines to increase performance)
+   - Fixed longstanding issue where slowest NVENC encoder preset caused encoding failures
+   - Removed support for Intel CPUs older than 6th generation (Skylake) when using Intel Quick Sync Video
 
- -- John Dong <jdong@ubuntu.com>  Wed, 17 Dec 2008 21:15:07 -0500
+  * FILTERS
+   - Added Bwdif deinterlace filter
+   - Improved Autocrop filter algorithm
+   - Higher accuracy on mixed aspect ratio content, e.g. both letterbox and full frame pictures
+   - Improved video scaling performance on Apple Silicon and ARM-based systems
+   - Use zscale (zimg) by default, falling back to swscale where necessary
+   - Improved multithread performance (slightly) for the following filters on high core count systems
+   - Comb Detect
+   - Decomb
+   - Denoise
+   - NLMeans
+   - Updated the following filters to support higher than 8-bit content and 4:2:2/4:4:4 chroma subsampling
+   - Detelecine
+   - Comb Detect
+   - Decomb
+   - Grayscale
+   - Denoise
+   - NLMeans
+   - HQDN3D
+   - Chroma Smooth
+   - Sharpen
+   - UnSharp
+   - LapSharp
 
-handbrake (0.9.3+repack1-0ubuntu0~8.04jdong3) hardy; urgency=low
+  * LINUX
+   - Added many quality of life improvements contributed by community members
+   - Improved parity with the Mac and Windows graphical interfaces
+   - Miscellaneous bug fixes and improvements
+   - Updated translations
+   - Added new translations
+   - Bulgarian (Български)
+   - Finnish (Suomi)
+   - Georgian (ქართული)
 
-  *  Switch to bzip2 compression
-
- -- John Dong <jdong@ubuntu.com>  Mon, 01 Dec 2008 14:19:06 -0500
-
-handbrake (0.9.3+repack1-0ubuntu0~8.04jdong2) hardy; urgency=low
-
-  * Split the GUI from the CLI:
-   - handbrake-gtk: GUI frontend
-   - handbrake-cli: CLI frontend
-   - handbrake-common: README files and documentations common to both.
-
- -- John Dong <jdong@ubuntu.com>  Mon, 01 Dec 2008 12:39:22 -0500
-
-handbrake (0.9.3+repack1-0ubuntu0~8.10jdong1) intrepid; urgency=low
-
-  * Repacked orig.tar.gz:
-    - Bundled contribs/ libraries so they don't get fetched as a part of the 
-      build process.
-    - Documented this process in README.Debian
-  * TODO:
-    - Document debian/copyright for contrib libraries
-    - Split handbrake-cli and handbrake-gtk
-
- -- John Dong <jdong@ubuntu.com>  Sat, 29 Nov 2008 00:31:50 -0500
-
-handbrake (0.9.3-0ubuntu0~8.10jdong2) jaunty; urgency=low
-
-  * UNRELEASED:
-   - Work-in-progress documenting debian/copyright
-
- -- John Dong <jdong@ubuntu.com>  Sat, 29 Nov 2008 00:26:56 -0500
-
-handbrake (0.9.3-0ubuntu0~8.10jdong1) jaunty; urgency=low
-
-  * Initial attempt at packaging
-
- -- John Dong <jdong@ubuntu.com>  Fri, 28 Nov 2008 14:17:16 -0500
+ -- John Stebbins <jstebbins.hb@gmail.com>  Wed, 28 Dec 2022 09:43:46 +0100
 
