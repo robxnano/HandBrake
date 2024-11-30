@@ -1,0 +1,57 @@
+{
+    "version": 3,
+    "configurePresets": [
+        {
+            "name": "default",
+            "displayName": "Default (RelWithDebugInfo)",
+            "description": "Default build using Ninja generator",
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/build-cmake",
+            "cacheVariables": {
+                "CMAKE_PREFIX_PATH": "${sourceDir}/build/contrib",
+                "CMAKE_BUILD_TYPE": "RelWithDebugInfo"
+            }
+        },
+        {
+            "name": "debug",
+            "displayName": "Debug",
+            "description": "Debug build using Ninja generator",
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/build-cmake",
+            "cacheVariables": {
+                "CMAKE_PREFIX_PATH": "${sourceDir}/build/contrib",
+                "CMAKE_BUILD_TYPE": "Debug"
+            }
+        },
+        {
+            "name": "release",
+            "displayName": "Release",
+            "description": "Release build using Ninja generator",
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/build-cmake",
+            "cacheVariables": {
+                "CMAKE_PREFIX_PATH": "${sourceDir}/build/contrib",
+                "CMAKE_BUILD_TYPE": "Release"
+            }
+        },
+        {
+            "name": "cross-mingw64",
+            "displayName": "Windows Cross-compile",
+            "description": "Cross-compile for Windows using MinGW GCC",
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/build-mingw64",
+            "cacheVariables": {
+                "MINGW": "ON",
+                "WIN32": "ON",
+                "CMAKE_FIND_ROOT_PATH_MODE_INCLUDE": "OFF",
+                "CMAKE_SYSTEM_NAME": "Windows",
+                "CMAKE_SYSTEM_PROCESSOR": "x86_64",
+                "CMAKE_C_COMPILER": "x86_64-w64-mingw32-gcc",
+                "CMAKE_CXX_COMPILER": "x86_64-w64-mingw32-g++",
+                "CMAKE_RC_COMPILER": "x86_64-w64-mingw32-windres",
+                "CMAKE_PREFIX_PATH": "${sourceDir}/build-win32/contrib",
+                "CMAKE_BUILD_TYPE": "Release"
+            }
+        }
+    ]
+}
