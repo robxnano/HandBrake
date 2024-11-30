@@ -1,0 +1,38 @@
+{
+    "version": 3,
+    "configurePresets": [
+        {
+            "name": "default",
+            "displayName": "Default Config",
+            "description": "Default build using Ninja generator",
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/build-cmake",
+            "cacheVariables": {
+                "CMAKE_PREFIX_PATH": "${sourceDir}/build/contrib",
+                "CMAKE_BUILD_TYPE": "RelWithDebugInfo"
+            }
+        },
+        {
+            "name": "debug",
+            "displayName": "Debug Config (",
+            "description": "Debug build using Ninja generator",
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/build-cmake",
+            "cacheVariables": {
+                "CMAKE_PREFIX_PATH": "${sourceDir}/build/contrib",
+                "CMAKE_BUILD_TYPE": "Debug"
+            }
+        },
+        {
+            "name": "release",
+            "displayName": "Release Config",
+            "description": "Release build using Ninja generator",
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/build-cmake",
+            "cacheVariables": {
+                "CMAKE_PREFIX_PATH": "${sourceDir}/build/contrib",
+                "CMAKE_BUILD_TYPE": "Release"
+            }
+        }
+    ]
+}
