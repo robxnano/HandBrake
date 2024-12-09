@@ -22,8 +22,6 @@
 #include "application.h"
 #include "audiohandler.h"
 #include "chapters.h"
-#include "ghb-button.h"
-#include "ghb-file-button.h"
 #include "hb-backend.h"
 #include "hb-dvd.h"
 #include "jobdict.h"
@@ -33,6 +31,8 @@
 #include "queuehandler.h"
 #include "resources.h"
 #include "subtitlehandler.h"
+#include "ui/button.h"
+#include "ui/file-button.h"
 #include "util.h"
 #include "videohandler.h"
 

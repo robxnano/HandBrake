@@ -23,7 +23,6 @@
 #include "audiohandler.h"
 #include "callbacks.h"
 #include "util.h"
-#include "ghb-button.h"
 #include "handbrake/handbrake.h"
 #include "hb-dvd.h"
 #include "jobdict.h"
@@ -33,6 +32,7 @@
 #include "subtitlehandler.h"
 #include "titledict.h"
 #include "title-add.h"
+#include "ui/button.h"
 #include "values.h"
 
 static gboolean skip_disk_space_check = FALSE;
