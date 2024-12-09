@@ -22,7 +22,7 @@
 #include "application.h"
 #include "audiohandler.h"
 #include "callbacks.h"
-#include "ghb-file-button.h"
+#include "gui/file-button.h"
 #include "handbrake/handbrake.h"
 #include "hb-dvd.h"
 #include "jobdict.h"

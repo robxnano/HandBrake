@@ -21,7 +21,7 @@
 
 #include "application.h"
 #include "callbacks.h"
-#include "ghb-chapter-row.h"
+#include "gui/chapter-row.h"
 #include "hb-backend.h"
 #include "jobdict.h"
 #include "presets.h"

@@ -8,11 +8,6 @@ ghb_src = files(
   'callbacks.c',
   'chapters.c',
   'color-scheme.c',
-  'ghb-button.c',
-  'ghb-chapter-row.c',
-  'ghb-file-button.c',
-  'ghb-queue-row.c',
-  'ghb-string-list.c',
   'hb-backend.c',
   'hb-dvd.c',
   'jobdict.c',
@@ -30,6 +25,11 @@ ghb_src = files(
   'util.c',
   'values.c',
   'videohandler.c',
+  'gui/button.c',
+  'gui/chapter-row.c',
+  'gui/file-button.c',
+  'gui/queue-row.c',
+  'gui/string-list.c',
 )
 
 config_h = configuration_data()
@@ -47,8 +47,8 @@ configure_file(configuration: config_h, output: 'config.h')
 
 # Generated files
 
-ui = gnome.compile_resources('ui_res', 'ui/ui_res.gresource.xml',
-  source_dir: 'ui',
+ui = gnome.compile_resources('ui_res', 'gui/ui_res.gresource.xml',
+  source_dir: 'gui',
   c_name: 'ghb_ui')
 
 # Build targets

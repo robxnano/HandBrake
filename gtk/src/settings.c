@@ -20,8 +20,8 @@
 #include "settings.h"
 
 #include "application.h"
-#include "ghb-file-button.h"
-#include "ghb-string-list.h"
+#include "gui/file-button.h"
+#include "gui/string-list.h"
 #include "hb-backend.h"
 
 #include <fcntl.h>
