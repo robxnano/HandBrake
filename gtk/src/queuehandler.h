@@ -20,9 +20,9 @@
 #pragma once
 
 #include "common.h"
-#include "ghb-queue-row.h"
 #include "hb-backend.h"
 #include "settings.h"
+#include "ui/queue-row.h"
 
 G_BEGIN_DECLS
 
