@@ -1,4 +1,4 @@
-/* ghb-button.c
+/* button.c
  *
  * Copyright (C) 2025 HandBrake Team
  *
@@ -18,7 +18,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
-#include "ghb-button.h"
+#include "ui/button.h"
 
 struct _GhbButton
 {
@@ -56,7 +56,7 @@ ghb_button_class_init (GhbButtonClass *class_)
     GtkWidgetClass *widget_class = GTK_WIDGET_CLASS(class_);
     GObjectClass *object_class = G_OBJECT_CLASS(class_);
 
-    gtk_widget_class_set_template_from_resource(widget_class, "/fr/handbrake/ghb/ui/ghb-button.ui");
+    gtk_widget_class_set_template_from_resource(widget_class, "/fr/handbrake/ghb/ui/button.ui");
     gtk_widget_class_bind_template_child(widget_class, GhbButton, layout_box);
     gtk_widget_class_bind_template_child(widget_class, GhbButton, icon);
     gtk_widget_class_bind_template_child(widget_class, GhbButton, label);

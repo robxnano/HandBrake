@@ -1,4 +1,4 @@
-/* ghb-string-list.c
+/* string-list.c
  *
  * Copyright (C) 2025 HandBrake Team
  *
@@ -18,7 +18,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
-#include "ghb-string-list.h"
+#include "ui/string-list.h"
 
 struct _GhbStringList {
     GtkBox parent_instance;
@@ -58,7 +58,7 @@ ghb_string_list_class_init (GhbStringListClass *klass)
     GtkWidgetClass *widget_class = GTK_WIDGET_CLASS(klass);
     GObjectClass *object_class = G_OBJECT_CLASS(klass);
 
-    gtk_widget_class_set_template_from_resource(widget_class, "/fr/handbrake/ghb/ui/ghb-string-list.ui");
+    gtk_widget_class_set_template_from_resource(widget_class, "/fr/handbrake/ghb/ui/string-list.ui");
     gtk_widget_class_bind_template_child(widget_class, GhbStringList, list_box);
 
     props[PROP_ITEMS] = g_param_spec_boxed("items", NULL, NULL,

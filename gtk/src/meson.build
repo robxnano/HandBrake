@@ -8,11 +8,6 @@ ghb_src = files(
   'callbacks.c',
   'chapters.c',
   'color-scheme.c',
-  'ghb-button.c',
-  'ghb-chapter-row.c',
-  'ghb-file-button.c',
-  'ghb-queue-row.c',
-  'ghb-string-list.c',
   'hb-backend.c',
   'hb-dvd.c',
   'jobdict.c',
@@ -30,6 +25,11 @@ ghb_src = files(
   'util.c',
   'values.c',
   'videohandler.c',
+  'ui/button.c',
+  'ui/chapter-row.c',
+  'ui/file-button.c',
+  'ui/queue-row.c',
+  'ui/string-list.c',
 )
 
 config_h = configuration_data()

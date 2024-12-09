@@ -22,13 +22,13 @@
 #include "application.h"
 #include "audiohandler.h"
 #include "callbacks.h"
-#include "ghb-file-button.h"
 #include "handbrake/handbrake.h"
 #include "hb-dvd.h"
 #include "jobdict.h"
 #include "presets.h"
 #include "queuehandler.h"
 #include "titledict.h"
+#include "ui/file-button.h"
 #include "values.h"
 
 G_MODULE_EXPORT void

@@ -20,9 +20,9 @@
 #include "settings.h"
 
 #include "application.h"
-#include "ghb-file-button.h"
-#include "ghb-string-list.h"
 #include "hb-backend.h"
+#include "ui/file-button.h"
+#include "ui/string-list.h"
 
 #include <fcntl.h>
 #include <string.h>

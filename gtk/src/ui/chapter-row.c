@@ -1,4 +1,4 @@
-/* ghb-chapter-row.c
+/* chapter-row.c
  *
  * Copyright (C) 2025 HandBrake Team
  *
@@ -18,7 +18,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
-#include "ghb-chapter-row.h"
+#include "ui/chapter-row.h"
 
 struct _GhbChapterRow {
     GtkListBoxRow parent_instance;
@@ -58,7 +58,7 @@ ghb_chapter_row_class_init (GhbChapterRowClass *klass)
     GtkWidgetClass *widget_class = GTK_WIDGET_CLASS(klass);
     GObjectClass *object_class = G_OBJECT_CLASS(klass);
 
-    gtk_widget_class_set_template_from_resource(widget_class, "/fr/handbrake/ghb/ui/ghb-chapter-row.ui");
+    gtk_widget_class_set_template_from_resource(widget_class, "/fr/handbrake/ghb/ui/chapter-row.ui");
     gtk_widget_class_bind_template_child(widget_class, GhbChapterRow, index_label);
     gtk_widget_class_bind_template_child(widget_class, GhbChapterRow, start_label);
     gtk_widget_class_bind_template_child(widget_class, GhbChapterRow, duration_label);
