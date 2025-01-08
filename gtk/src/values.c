@@ -213,9 +213,9 @@ ghb_dict_get_double(const GhbValue *dict, const gchar *key)
 const gchar*
 ghb_dict_get_string(const GhbValue *dict, const gchar *key)
 {
-    const GhbValue* value;
-    value = ghb_dict_get_value(dict, key);
-    return ghb_value_get_string(value);
+    const GhbValue *value = ghb_dict_get_value(dict, key);
+    const char *str = ghb_value_get_string(value);
+    return str ? str : "";
 }
 
 gchar*

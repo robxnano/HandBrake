@@ -30,12 +30,7 @@
 
 G_BEGIN_DECLS
 
-typedef enum {
-    GHB_ACTION_NORMAL,
-    GHB_ACTION_SUGGESTED,
-    GHB_ACTION_DESTRUCTIVE,
-} GhbActionStyle;
-
+void ghb_application_quit(void);
 gboolean ghb_timer_cb(gpointer data);
 gboolean ghb_log_cb(GIOChannel *source, GIOCondition cond, gpointer data);
 void ghb_hbfd(signal_user_data_t *ud, gboolean hbfd);

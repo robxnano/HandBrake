@@ -7,12 +7,6 @@
 
 G_BEGIN_DECLS
 
-enum {
-    GHB_QUEUE_STATUS_READY,
-    GHB_QUEUE_STATUS_IN_PROGRESS,
-    GHB_QUEUE_STATUS_DONE,
-};
-
 #define GHB_TYPE_QUEUE_ROW (ghb_queue_row_get_type())
 
 G_DECLARE_FINAL_TYPE(GhbQueueRow, ghb_queue_row, GHB, QUEUE_ROW, GtkListBoxRow)

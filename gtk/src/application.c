@@ -22,10 +22,12 @@
 #include "audiohandler.h"
 #include "callbacks.h"
 #include "color-scheme.h"
+#include "enum-types.h"
 #include "handbrake/handbrake.h"
 #include "hb-backend.h"
 #include "hb-dvd.h"
 #include "icon_res.h"
+#include "model/prefs.h"
 #include "power-manager.h"
 #include "presets.h"
 #include "preview.h"
@@ -58,6 +60,7 @@ struct _GhbApplication
     GtkApplication parent_instance;
     signal_user_data_t *ud;
     GtkBuilder *builder;
+    GhbPrefs *prefs;
     char *app_cmd;
     int cancel_encode;
     int when_complete;
@@ -73,6 +76,15 @@ static char *arg_preset = NULL;
 static gboolean auto_start_queue = FALSE;
 static gboolean clear_queue = FALSE;
 static gboolean redirect_io = TRUE;
+
+static void setup_main_window_prefs(GhbApplication *self);
+static void when_complete_changed_cb(GSettings *settings, const char *name, GhbApplication *app);
+extern void show_preview_changed_cb(GSettings *settings, const char *name, GhbApplication *app);
+extern void activity_font_changed_cb(GSettings *settings, const char *name, GhbApplication *app);
+extern void use_m4v_changed_cb(GSettings *settings, const char *name, GhbApplication *app);
+extern void vqual_granularity_changed_cb(GSettings *settings, const char *name, GhbApplication *app);
+extern void log_level_changed_cb(GSettings *settings, const char *name, GhbApplication *app);
+extern void hbfd_feature_changed_cb(GSettings *settings, const char *name, GhbApplication *app);
 
 static GtkBuilder*
 create_builder_or_die (const gchar *name)
@@ -541,7 +553,7 @@ map_actions (GtkApplication *app, signal_user_data_t *ud)
 static gboolean
 _ghb_idle_ui_init (signal_user_data_t *ud)
 {
-    ghb_settings_to_ui(ud, ud->prefs);
+    //ghb_settings_to_ui(ud, ud->prefs);
     // Note that ghb_settings_to_ui(ud->settings) happens when initial
     // empty title is initialized.
 
@@ -554,7 +566,7 @@ _ghb_idle_ui_init (signal_user_data_t *ud)
     }
     else
     {
-        const char *source = ghb_dict_get_string(ud->prefs, "default_source");
+        g_autofree char *source = ghb_prefs_get_string(ud->prefs, "default-source");
         ghb_set_scan_source(source);
     }
 
@@ -617,8 +629,7 @@ G_GNUC_BEGIN_IGNORE_DEPRECATIONS
 
         if (g_list_model_get_n_items(G_LIST_MODEL(video_files)))
         {
-            ghb_dict_set_string(ud->prefs, "default_source", filename);
-            ghb_pref_save(ud->prefs, "default_source");
+            ghb_prefs_set_string(ud->prefs, "default-source", filename);
             ghb_dvd_set_current(filename, ud);
             ghb_do_scan_list(ud, G_LIST_MODEL(video_files), 0, TRUE);
         }
@@ -653,8 +664,7 @@ G_GNUC_END_IGNORE_DEPRECATIONS
     if (filename != NULL)
     {
         g_debug("File dropped on window: %s", filename);
-        ghb_dict_set_string(ud->prefs, "default_source", filename);
-        ghb_pref_save(ud->prefs, "default_source");
+        ghb_prefs_set_string(ud->prefs, "default-source", filename);
         ghb_dvd_set_current(filename, ud);
         ghb_do_scan(ud, filename, 0, TRUE);
     }
@@ -760,11 +770,14 @@ ghb_application_activate (GApplication *app)
     }
 
     signal_user_data_t *ud = self->ud = g_malloc0(sizeof(signal_user_data_t));
+    ghb_resource_init();
+    self->prefs = ghb_prefs_new();
+    ud->prefs = self->prefs;
     g_autoptr(GtkCssProvider) provider = gtk_css_provider_new();
 
-    if (ghb_dict_get_bool(ud->prefs, "CustomTmpEnable"))
+    if (ghb_prefs_get_boolean(ud->prefs, "custom-tmp-enable"))
     {
-        const char *tmp_dir = ghb_dict_get_string(ud->prefs, "CustomTmpDir");
+        g_autofree char *tmp_dir = ghb_prefs_get_string(ud->prefs, "custom-tmp-dir");
         if (tmp_dir != NULL && tmp_dir[0] != 0)
         {
 #if defined(_WIN32)
@@ -782,19 +795,19 @@ ghb_application_activate (GApplication *app)
     gtk_style_context_add_provider_for_display(dd,
                                 GTK_STYLE_PROVIDER(provider),
                                 GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
-    ghb_resource_init();
     gtk_icon_theme_add_resource_path(gtk_icon_theme_get_for_display(gdk_display_get_default()),
                                      "/fr/handbrake/ghb/icons");
 
     // map application actions (menu callbacks)
     map_actions(GTK_APPLICATION(app), ud);
 
-    ud->prefs = ghb_dict_new();
     ud->settings_array = ghb_array_new();
     ud->settings = ghb_dict_new();
     ghb_array_append(ud->settings_array, ud->settings);
 
     self->builder = create_builder_or_die(BUILDER_NAME);
+
+    setup_main_window_prefs(self);
 
     // Initialize D-Bus connections to monitor power settings
     ghb_power_manager_init(ud);
@@ -852,15 +865,10 @@ ghb_application_activate (GApplication *app)
     // Load prefs before presets.  Some preset defaults may depend
     // on preference settings.
     // First load default values
-    ghb_settings_init(ud->prefs, "Preferences");
     ghb_settings_init(ud->settings, "Initialization");
     ghb_settings_init(ud->settings, "OneTimeInitialization");
-    // Load user preferences file
-    ghb_prefs_load(ud);
-    // Store user preferences into ud->prefs
-    ghb_prefs_to_settings(ud->prefs);
 
-    int logLevel = ghb_dict_get_int(ud->prefs, "LoggingLevel");
+    int logLevel = ghb_prefs_get_int(ud->prefs, "logging-level");
 
     // Initialize HB work threads
     ghb_backend_init(logLevel);
@@ -873,7 +881,7 @@ ghb_application_activate (GApplication *app)
     // So initialize UI when idle.
     g_idle_add((GSourceFunc)_ghb_idle_ui_init, ud);
 
-    const gchar *source = ghb_dict_get_string(ud->prefs, "default_source");
+    g_autofree char *source = ghb_prefs_get_string(ud->prefs, "default-source");
     ghb_dvd_set_current(source, ud);
 
     // Populate the presets tree view
@@ -893,8 +901,8 @@ ghb_application_activate (GApplication *app)
     GtkWindow *hb_window = GTK_WINDOW(ghb_builder_widget("hb_window"));
 
     gint window_width, window_height;
-    window_width = ghb_dict_get_int(ud->prefs, "window_width");
-    window_height = ghb_dict_get_int(ud->prefs, "window_height");
+    window_width = ghb_prefs_get_int(ud->prefs, "window-width");
+    window_height = ghb_prefs_get_int(ud->prefs, "window-height");
     gtk_window_set_default_size(hb_window, window_width, window_height);
 
     ghb_set_custom_filter_tooltip(ud, "PictureDetelecineCustom",
@@ -1018,7 +1026,7 @@ ghb_application_shutdown (GApplication *app)
         g_source_remove(self->stderr_src_id);
     ghb_value_free(&ud->queue);
     ghb_value_free(&ud->settings_array);
-    ghb_value_free(&ud->prefs);
+    ud->prefs = NULL;
 
     if (ud->activity_log != NULL)
         g_io_channel_unref(ud->activity_log);
@@ -1030,6 +1038,7 @@ ghb_application_shutdown (GApplication *app)
 
     ghb_power_manager_dispose(ud);
 
+    g_object_unref(self->prefs);
     g_object_unref(ud->extra_activity_buffer);
     g_object_unref(ud->queue_activity_buffer);
     g_object_unref(ud->activity_buffer);
@@ -1045,8 +1054,10 @@ ghb_application_shutdown (GApplication *app)
 enum {
   PROP_0,
   PROP_APP_CMD,
+  PROP_WHEN_COMPLETE,
   N_PROPS
 };
+static GParamSpec *props[N_PROPS] = {NULL};
 
 static void
 ghb_application_get_property (GObject *object, guint prop_id,
@@ -1058,6 +1069,9 @@ ghb_application_get_property (GObject *object, guint prop_id,
     {
         case PROP_APP_CMD:
             g_value_set_string(value, self->app_cmd);
+            break;
+        case PROP_WHEN_COMPLETE:
+            g_value_set_enum(value, self->when_complete);
             break;
         default:
             G_OBJECT_WARN_INVALID_PROPERTY_ID(object, prop_id, pspec);
@@ -1074,6 +1088,9 @@ ghb_application_set_property (GObject *object, guint prop_id,
     {
         case PROP_APP_CMD:
             self->app_cmd = g_value_dup_string(value);
+            break;
+        case PROP_WHEN_COMPLETE:
+            self->when_complete = g_value_get_enum(value);
             break;
         default:
             G_OBJECT_WARN_INVALID_PROPERTY_ID(object, prop_id, pspec);
@@ -1095,12 +1112,15 @@ ghb_application_class_init (GhbApplicationClass *klass)
     object_class->get_property = ghb_application_get_property;
     object_class->set_property = ghb_application_set_property;
 
-    g_autoptr(GParamSpec) prop = g_param_spec_string("app-cmd", "App Command",
+    props[PROP_APP_CMD] = g_param_spec_string("app-cmd", "App Command",
             "The full command-line name of the application", "ghb",
             G_PARAM_READABLE | G_PARAM_WRITABLE |
             G_PARAM_CONSTRUCT_ONLY | G_PARAM_STATIC_STRINGS);
+    props[PROP_WHEN_COMPLETE] = g_param_spec_enum("when-complete", NULL, NULL,
+            GHB_TYPE_WHEN_COMPLETE_ACTION, GHB_ACTION_NOTHING,
+            G_PARAM_READABLE | G_PARAM_WRITABLE | G_PARAM_STATIC_STRINGS);
 
-    g_object_class_install_property (object_class, PROP_APP_CMD, prop);
+    g_object_class_install_properties (object_class, N_PROPS, props);
 }
 
 /**
@@ -1203,4 +1223,45 @@ gboolean
 ghb_get_auto_start_queue (void)
 {
     return auto_start_queue;
+}
+
+GhbPrefs *
+ghb_application_get_prefs (GhbApplication *app)
+{
+    g_return_val_if_fail(GHB_IS_APPLICATION(app), NULL);
+    return app->prefs;
+}
+
+static void
+when_complete_changed_cb (GSettings *settings, const char *name, GhbApplication *app)
+{
+    g_return_if_fail(GHB_IS_APPLICATION(app));
+    int value = g_settings_get_enum(settings, "when-complete");
+    g_object_set(G_OBJECT(app), "when-complete", value, NULL);
+}
+
+static void
+setup_main_window_prefs (GhbApplication *self)
+{
+    GSettings *gsettings = ghb_prefs_get_gsettings(self->prefs);
+
+    g_signal_connect(gsettings, "changed::when-complete", G_CALLBACK(when_complete_changed_cb), self);
+    when_complete_changed_cb(gsettings, "when-complete", self);
+    g_signal_connect(gsettings, "changed::show-mini-preview", G_CALLBACK(show_preview_changed_cb), self);
+    g_signal_connect(gsettings, "changed::activity-font-family", G_CALLBACK(activity_font_changed_cb), self);
+    g_signal_connect(gsettings, "changed::activity-font-size", G_CALLBACK(activity_font_changed_cb), self);
+    activity_font_changed_cb(gsettings, "activity-font-size", self);
+    g_signal_connect(gsettings, "changed::video-quality-granularity", G_CALLBACK(vqual_granularity_changed_cb), self);
+    g_signal_connect(gsettings, "changed::use-m4v", G_CALLBACK(use_m4v_changed_cb), self);
+    g_signal_connect(gsettings, "changed::logging-level", G_CALLBACK(log_level_changed_cb), self);
+    log_level_changed_cb(gsettings, "logging-level", self);
+    g_signal_connect(gsettings, "changed::hbfd-feature", G_CALLBACK(hbfd_feature_changed_cb), self);
+    if (g_settings_get_boolean(gsettings, "hbfd-feature"))
+        hbfd_feature_changed_cb(gsettings, "hbfd-feature", self);
+
+    GBindingFlags flags = G_BINDING_BIDIRECTIONAL | G_BINDING_SYNC_CREATE;
+    GtkWidget *widget = ghb_builder_widget("MainWhenComplete");
+    g_object_bind_property(self, "when-complete", widget, "selected", flags);
+    widget = ghb_builder_widget("QueueWhenComplete");
+    g_object_bind_property(self, "when-complete", widget, "selected", flags);
 }

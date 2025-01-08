@@ -178,7 +178,7 @@ GtkFileChooser *
 ghb_file_chooser_new (const char *title, GtkWindow *parent, GtkFileChooserAction action,
                       const char *accept_label, const char *cancel_label)
 {
-    if (!ghb_dict_get_bool(ghb_ud()->prefs, "NativeFileChooser"))
+    if (!ghb_prefs_get_boolean(ghb_ud()->prefs, "native-file-chooser"))
     {
         return GTK_FILE_CHOOSER(gtk_file_chooser_dialog_new(title, parent, action,
                                                             accept_label, GTK_RESPONSE_ACCEPT,

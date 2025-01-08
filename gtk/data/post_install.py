@@ -16,6 +16,13 @@ if 'DESTDIR' not in os.environ:
         print('gtk-update-icon-cache was not found in PATH.')
 
     try:
+        print('Compiling settings schemas...')
+        subprocess.run(['glib-compile-schemas',
+                        os.path.join(datadir, 'glib-2.0', 'schemas')])
+    except:
+        print('glib-compile-schemas was not found in PATH.')
+
+    try:
         print('Updating desktop database...')
         subprocess.run(['update-desktop-database',
                         os.path.join(datadir, 'applications')])

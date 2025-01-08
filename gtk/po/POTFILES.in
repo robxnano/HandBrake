@@ -6,6 +6,7 @@ src/ui/ghb.ui
 src/ui/button.ui
 src/ui/chapter-row.ui
 src/ui/file-button.ui
+src/ui/prefs-dialog.ui
 src/ui/queue-row.ui
 
 # Source code
@@ -23,6 +24,7 @@ src/title-add.c
 src/videohandler.c
 src/ui/chapter-row.c
 src/ui/file-button.c
+src/ui/prefs-dialog.c
 src/ui/queue-row.c
 
 # Other files
