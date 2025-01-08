@@ -21,6 +21,7 @@
 
 #include "common.h"
 #include "values.h"
+#include "model/prefs.h"
 
 G_BEGIN_DECLS
 
@@ -51,7 +52,7 @@ typedef struct preview_s preview_t;
 typedef struct
 {
     char                * current_dvd_device;
-    GhbValue            * prefs;
+    GhbPrefs            * prefs;
     GhbValue            * settings;
     GhbValue            * settings_array;
     GhbValue            * queue;
@@ -76,7 +77,6 @@ enum
 void ghb_settings_copy(
     GhbValue *settings, const gchar *key, const GhbValue *value);
 gint ghb_settings_combo_int(const GhbValue *settings, const gchar *key);
-gdouble ghb_settings_combo_double(const GhbValue *settings, const gchar *key);
 gchar* ghb_settings_combo_option(const GhbValue *settings, const gchar *key);
 
 GhbValue* ghb_widget_value(GtkWidget *widget);

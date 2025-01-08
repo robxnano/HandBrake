@@ -665,44 +665,8 @@ combo_name_map_t combo_name_map[] =
         generic_opt_get
     },
     {
-        "WhenComplete",
-        &when_complete_opts,
-        small_opts_set,
-        generic_opt_get
-    },
-    {
-        "MainWhenComplete",
-        &when_complete_opts,
-        small_opts_set,
-        generic_opt_get
-    },
-    {
-        "QueueWhenComplete",
-        &when_complete_opts,
-        small_opts_set,
-        generic_opt_get
-    },
-    {
         "PicturePAR",
         &par_opts,
-        small_opts_set,
-        generic_opt_get
-    },
-    {
-        "LoggingLevel",
-        &logging_opts,
-        small_opts_set,
-        generic_opt_get
-    },
-    {
-        "LogLongevity",
-        &log_longevity_opts,
-        small_opts_set,
-        generic_opt_get
-    },
-    {
-        "VideoQualityGranularity",
-        &vqual_granularity_opts,
         small_opts_set,
         generic_opt_get
     },
@@ -829,12 +793,6 @@ combo_name_map_t combo_name_map[] =
     {
         "PicturePadColor",
         &pad_color_opts,
-        small_opts_set,
-        generic_opt_get
-    },
-    {
-        "UiLanguage",
-        &ui_language_opts,
         small_opts_set,
         generic_opt_get
     },
@@ -1119,7 +1077,7 @@ ghb_vquality_range(
     *page = 10;
     *digits = 0;
     hb_video_quality_get_limits(vcodec, min, max, &min_step, direction);
-    *step = ghb_settings_combo_double(ud->prefs, "VideoQualityGranularity");
+    *step = ghb_prefs_get_double(ud->prefs, "video-quality-granularity");
 
     if (*step < min_step)
         *step = min_step;
@@ -1840,7 +1798,7 @@ ghb_lookup_video_encoder(const char *name)
 int
 ghb_lookup_video_encoder_codec(const char *name)
 {
-    if (!name)
+    if (!name || !name[0])
         return -1;
 
     return ghb_lookup_video_encoder(name)->codec;
@@ -3609,19 +3567,20 @@ ghb_get_excluded_extensions_list (void)
 {
     signal_user_data_t *ud = ghb_ud();
 
-    GhbValue *ext_array = ghb_dict_get(ud->prefs, "ExcludedFileExtensions");
+    char **ext_array = ghb_prefs_get_strv(ud->prefs, "excluded-file-extensions");
 
     if (!ext_array) return NULL;
 
     hb_list_t *ext_list = hb_list_init();
-    for (int i = 0; i < hb_value_array_len(ext_array); i++)
+
+    for (int i = 0; i < g_strv_length(ext_array); i++)
     {
-        hb_value_t *value = hb_value_array_get(ext_array, i);
-        const char *ext = ghb_value_get_string(value);
+        const char *ext = ext_array[i];
         if (ext && ext[0])
             hb_list_add(ext_list, g_strdup(ext));
         ghb_log("Excluded extension %s", ext);
     }
+    g_strfreev(ext_array);
     return ext_list;
 }
 

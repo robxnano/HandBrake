@@ -28,8 +28,16 @@ ghb_src = files(
   'ui/button.c',
   'ui/chapter-row.c',
   'ui/file-button.c',
+  'ui/prefs-dialog.c',
   'ui/queue-row.c',
   'ui/string-list.c',
+  'model/prefs.c',
+)
+
+ghb_src += gnome.mkenums_simple('enum-types',
+   header_prefix: '#include "common.h"',
+       decorator: 'extern',
+         sources: 'common.h',
 )
 
 config_h = configuration_data()

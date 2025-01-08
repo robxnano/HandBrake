@@ -1,0 +1,235 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemalist>
+  <enum id="fr.handbrake.ghb.log-longevity">
+    <value nick="day" value="1"/>
+    <value nick="week" value="7"/>
+    <value nick="month" value="30"/>
+    <value nick="year" value="365"/>
+    <value nick="immortal" value="0"/>
+  </enum>
+  <enum id="fr.handbrake.ghb.when-complete-action">
+    <value nick="nothing" value="0"/>
+    <value nick="quit" value="1"/>
+    <value nick="sleep" value="2"/>
+    <value nick="shutdown" value="3"/>
+  </enum>
+  <schema id="fr.handbrake.ghb.Preferences" path="/fr/handbrake/ghb/Preferences/" gettext-domain="ghb">
+    <key name="activity-font-family" type="s">
+      <default>'monospace'</default>
+      <summary>Activity Log font family</summary>
+    </key>
+    <key name="activity-font-size" type="i">
+      <range min="1" max="255"/>
+      <default>8</default>
+      <summary>Activity Log font size</summary>
+    </key>
+    <key name="add-cc" type="b">
+      <default>false</default>
+      <summary>Add Closed Captions track</summary>
+    </key>
+    <key name="auto-name" type="b">
+      <default>true</default>
+      <summary>Automatically name output files</summary>
+    </key>
+    <key name="auto-name-template" type="s">
+      <default>'{source}'</default>
+      <summary>Automatic naming template</summary>
+    </key>
+    <key name="auto-scan" type="b">
+      <default>false</default>
+      <summary>Automatically Scan discs on insertion</summary>
+    </key>
+    <key name="custom-notification-message" type="s">
+      <default>''</default>
+      <summary>Custom notification message</summary>
+    </key>
+    <key name="custom-tmp-enable" type="b">
+      <default>false</default>
+      <summary>Enable custom tempdir</summary>
+    </key>
+    <key name="custom-tmp-dir" type="s">
+      <default>''</default>
+      <summary>Custom tempdir location</summary>
+    </key>
+    <key name="default-source" type="s">
+      <default>''</default>
+      <summary>Default scan source</summary>
+    </key>
+    <key name="destination-dir" type="s">
+      <default>''</default><summary>Last used destination directory</summary>
+    </key>
+    <key name="disk-free-check" type="b">
+      <default>true</default>
+      <summary>Check free disk space</summary>
+    </key>
+    <key name="disk-free-limit" type="i">
+      <range min="1" max="100000"/>
+      <default>2</default>
+      <summary>Free disk space limit (GB)</summary>
+    </key>
+    <key name="encode-log-location" type="b">
+      <default>false</default>
+      <summary>Store encode logs in same location as output file</summary>
+    </key>
+    <key name="excluded-file-extensions" type="as">
+      <default>['jpg', 'png', 'srt', 'ssa', 'ass', 'txt']</default>
+      <summary>Extensions to exclude when scanning</summary>
+    </key>
+    <key name="export-directory" type="s">
+      <default>''</default>
+      <summary>Last used export directory</summary>
+    </key>
+    <key name="hbfd" type="b">
+      <default>false</default>
+      <summary>Show HandBrake For Dummies in menu</summary>
+    </key>
+    <key name="hbfd-feature" type="b">
+      <default>false</default>
+      <summary>Enable HandBrake For Dummies</summary>
+    </key>
+    <key name="keep-duplicate-titles" type="b">
+      <default>false</default>
+      <summary>Keep Duplicate Titles</summary>
+    </key>
+    <key name="logging-level" type="i">
+      <range min="0" max="3"/>
+      <default>1</default>
+      <summary>Encode log verbosity</summary>
+    </key>
+    <key name="log-longevity" enum="fr.handbrake.ghb.log-longevity">
+      <default>'immortal'</default>
+      <summary>Length of time to keep logs (days, 0 to keep indefinitely)</summary>
+    </key>
+    <key name="recursive-folder-scan" type="b">
+      <default>false</default>
+      <summary>Recursively scan folders</summary>
+    </key>
+    <key name="low-battery-level" type="i">
+      <range min="1" max="100"/>
+      <default>15</default>
+      <summary>Battery percentage to pause encoding</summary>
+    </key>
+    <key name="limit-max-duration" type="b">
+      <default>true</default>
+      <summary>Enable maximum scanned title duration</summary>
+    </key>
+    <key name="max-title-duration" type="i">
+      <default>0</default>
+      <summary>Maximum scanned title duration</summary>
+    </key>
+    <key name="min-title-duration" type="i">
+      <default>10</default>
+      <summary>Minimum scanned title duration</summary>
+    </key>
+    <key name="native-file-chooser" type="b">
+      <default>true</default>
+      <summary>Use desktop-native file chooser</summary>
+    </key>
+    <key name="notify-on-encode-done" type="b">
+      <default>false</default>
+      <summary>Notify when encode is completed</summary>
+    </key>
+    <key name="notify-on-queue-done" type="b">
+      <default>true</default>
+      <summary>Notify when queue is completed</summary>
+    </key>
+    <key name="pause-encoding-on-power-save" type="b">
+      <default>true</default>
+      <summary>Pause encoding on entering Power Save</summary>
+    </key>
+    <key name="pause-encoding-on-battery-power" type="b">
+      <default>false</default>
+      <summary>Pause encoding when computer switches to battery power</summary>
+    </key>
+    <key name="pause-encoding-on-low-battery" type="b">
+      <default>false</default>
+      <summary>Pause encoding on low battery</summary>
+    </key>
+    <key name="preferred-language" type="s">
+      <default>'und'</default>
+      <summary>Preferred audio and subtitle language</summary>
+    </key>
+    <key name="presets-window-height" type="i">
+      <default>1</default>
+      <summary>Presets window height</summary>
+    </key>
+    <key name="presets-window-width" type="i">
+      <default>1</default>
+      <summary>Presets window hidth</summary>
+    </key>
+    <key name="preview-count" type="i">
+      <range min="5" max="60"/>
+      <default>10</default>
+      <summary>Number of preview images</summary>
+    </key>
+    <key name="preview-duration" type="i">
+      <range min="15" max="240"/>
+      <default>15</default>
+      <summary>Live preview duration (seconds)</summary>
+    </key>
+    <key name="reduce-hd-preview" type="b">
+      <default>true</default>
+      <summary>Reduce preview window size</summary>
+    </key>
+    <key name="remove-finished-jobs" type="b">
+      <default>false</default>
+      <summary>Clear completed jobs from queue</summary>
+    </key>
+    <key name="send-file-to" type="b">
+      <default>false</default>
+      <summary>Run a command on job completion</summary>
+    </key>
+    <key name="send-file-to-target" type="s">
+      <default>''</default>
+      <summary>The command to run when a job completes</summary>
+    </key>
+    <key name="show-mini-preview" type="b">
+      <default>true</default>
+      <summary>Show mini preview on Summary tab</summary>
+    </key>
+    <key name="show-queue-sidebar" type="b">
+      <default>true</default>
+      <summary>Show queue sidebar</summary>
+    </key>
+    <key name="srt-dir" type="s">
+      <default>''</default>
+      <summary>Default subtitle directory</summary>
+    </key>
+    <key name="sync-title-settings" type="b">
+      <default>true</default>
+      <summary>Sync encode settings across titles</summary>
+    </key>
+    <key name="use-dvdnav" type="b">
+      <default>true</default>
+      <summary>Use DVDNav to scan for titles</summary>
+    </key>
+    <key name="ui-language" type="s">
+      <default>''</default>
+      <summary>The country code to use for the UI display language</summary>
+    </key>
+    <key name="use-m4v" type="b">
+      <default>false</default>
+      <summary>Use .m4v file extension for MP4 files</summary>
+    </key>
+    <key name="version" type="d">
+      <default>2.0</default>
+      <summary>HandBrake preferences API version</summary>
+    </key>
+    <key name="video-quality-granularity" type="d">
+      <default>1.0</default>
+      <summary>Video quality granularity</summary>
+    </key>
+    <key name="when-complete" enum="fr.handbrake.ghb.when-complete-action">
+      <default>'nothing'</default>
+      <summary>Action to take when queue is completed</summary>
+    </key>
+    <key name="window-height" type="i">
+      <default>1</default>
+      <summary>Main window height</summary>
+    </key>
+    <key name="window-width" type="i">
+      <default>1</default>
+      <summary>Main window width</summary>
+    </key>
+  </schema>
+</schemalist>

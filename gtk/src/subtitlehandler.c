@@ -466,7 +466,8 @@ static GhbValue*  subtitle_add_track(
     {
         // Set default SRT settings
         GhbValue *import_dict;
-        const gchar *pref_lang, *dir;
+        const gchar *pref_lang;
+        g_autofree char *dir;
         gchar *filename;
 
         import_dict = ghb_dict_new();
@@ -478,7 +479,8 @@ static GhbValue*  subtitle_add_track(
         ghb_dict_set_string(import_dict, "Language", pref_lang);
         ghb_dict_set_string(import_dict, "Codeset", "UTF-8");
 
-        dir = ghb_dict_get_string(ud->prefs, "SrtDir");
+        dir = ghb_prefs_get_string_or(ud->prefs, "srt-dir",
+                                      g_get_user_special_dir(G_USER_DIRECTORY_DOCUMENTS));
         filename = g_strdup_printf("%s/none", dir);
         ghb_dict_set_string(import_dict, "Filename", filename);
         g_free(filename);
@@ -902,7 +904,8 @@ subtitle_import_radio_toggled_cb (GtkWidget *widget, gpointer data)
                 ghb_dict_set_string(import, "Language", pref_lang);
                 ghb_dict_set_string(import, "Codeset", "UTF-8");
 
-                dir = ghb_dict_get_string(ud->prefs, "SrtDir");
+                dir = ghb_prefs_get_string_or(ud->prefs, "srt-dir",
+                                              g_get_user_special_dir(G_USER_DIRECTORY_DOCUMENTS));
                 filename = g_strdup_printf("%s/none", dir);
                 ghb_dict_set_string(import, "Filename", filename);
                 g_free(filename);
@@ -1005,15 +1008,14 @@ import_file_changed_cb (GtkWidget *widget, gpointer data)
     filename = ghb_value_get_string(val);
     if (g_file_test(filename, G_FILE_TEST_IS_DIR))
     {
-        ghb_dict_set_string(ud->prefs, "SrtDir", filename);
+        ghb_prefs_set_string(ud->prefs, "srt-dir", filename);
     }
     else
     {
         dirname = g_path_get_dirname(filename);
-        ghb_dict_set_string(ud->prefs, "SrtDir", dirname);
+        ghb_prefs_set_string(ud->prefs, "srt-dir", dirname);
         g_free(dirname);
     }
-    ghb_pref_save(ud->prefs, "SrtDir");
 }
 
 G_MODULE_EXPORT void

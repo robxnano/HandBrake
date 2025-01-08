@@ -45,7 +45,6 @@
 #endif
 
 static GhbValue *prefsDict = NULL;
-static gboolean prefs_modified = FALSE;
 static gchar *override_user_config_dir = NULL;
 static gboolean dont_clear_presets = FALSE;
 
@@ -56,7 +55,6 @@ typedef struct {
     hb_preset_index_t *folder_path;
 } preset_write_data;
 
-static void store_prefs(void);
 static void store_presets(void);
 static void preset_write_response(GtkDialog *dialog, GtkResponseType response,
                                   preset_write_data *data);
@@ -1017,57 +1015,6 @@ remove_config_file(const gchar *name)
 }
 
 void
-ghb_pref_save(GhbValue *settings, const gchar *key)
-{
-    const GhbValue *value, *value2;
-
-    value = ghb_dict_get_value(settings, key);
-    if (value != NULL)
-    {
-        GhbValue *dict;
-        dict = ghb_dict_get(prefsDict, "Preferences");
-        if (dict == NULL) return;
-        value2 = ghb_dict_get(dict, key);
-        if (ghb_value_cmp(value, value2) != 0)
-        {
-            ghb_dict_set(dict, key, ghb_value_dup(value));
-            store_prefs();
-            prefs_modified = FALSE;
-        }
-    }
-}
-
-void
-ghb_pref_set(GhbValue *settings, const gchar *key)
-{
-    const GhbValue *value, *value2;
-
-    value = ghb_dict_get_value(settings, key);
-    if (value != NULL)
-    {
-        GhbValue *dict;
-        dict = ghb_dict_get(prefsDict, "Preferences");
-        if (dict == NULL) return;
-        value2 = ghb_dict_get(dict, key);
-        if (ghb_value_cmp(value, value2) != 0)
-        {
-            ghb_dict_set(dict, key, ghb_value_dup(value));
-            prefs_modified = TRUE;
-        }
-    }
-}
-
-void
-ghb_prefs_store(void)
-{
-    if (prefs_modified)
-    {
-        store_prefs();
-        prefs_modified = FALSE;
-    }
-}
-
-void
 ghb_settings_init(GhbValue *settings, const char *name)
 {
     GhbValue    *internal;
@@ -1118,64 +1065,6 @@ FindFirstCDROM(void)
 #endif
 
 void
-ghb_prefs_load(signal_user_data_t *ud)
-{
-    GhbValue    *dict, *internal;
-    GhbValue *internalDict;
-
-    internalDict = ghb_resource_get("internal-defaults");
-    prefsDict    = read_config_file("preferences.json");
-    if (prefsDict == NULL)
-        prefsDict    = read_config_file("preferences");
-    if (prefsDict == NULL)
-        prefsDict = ghb_dict_new();
-    dict     = ghb_dict_get(prefsDict, "Preferences");
-    internal = ghb_dict_get(internalDict, "Preferences");
-    if (dict == NULL && internal != NULL)
-    {
-        dict = ghb_value_dup(internal);
-        ghb_dict_set(prefsDict, "Preferences", dict);
-
-        const char *dir = g_get_user_special_dir(G_USER_DIRECTORY_DOCUMENTS);
-        if (dir == NULL)
-        {
-            dir = ".";
-        }
-        ghb_dict_set_string(dict, "ExportDirectory", dir);
-
-        dir = g_get_user_special_dir(G_USER_DIRECTORY_VIDEOS);
-        if (dir == NULL)
-        {
-            dir = ".";
-        }
-        ghb_dict_set_string(dict, "destination_dir", dir);
-
-        ghb_dict_set_string(dict, "SrtDir", dir);
-#if defined(_WIN32)
-        gchar *source;
-
-        source = FindFirstCDROM();
-        if (source == NULL)
-        {
-            source = g_strdup("C:" G_DIR_SEPARATOR_S);
-        }
-        ghb_dict_set_string(dict, "default_source", source);
-        g_free(source);
-#endif
-        store_prefs();
-    }
-    // Migrate from legacy preferences
-    if (ghb_dict_get_int(dict, "DiskFreeLimit"))
-    {
-        int limit_gb = ghb_dict_get_int(dict, "DiskFreeLimit") / 1000;
-        if (limit_gb <= 0) limit_gb = 1;
-        ghb_dict_set_int(dict, "DiskFreeLimitGB", limit_gb);
-        ghb_dict_remove(dict, "DiskFreeLimit");
-    }
-    ghb_dict_remove(dict, "show_presets");
-}
-
-void
 ghb_prefs_to_settings(GhbValue *settings)
 {
     // Initialize the ui from presets file.
@@ -1224,8 +1113,8 @@ show_presets_action_cb(GSimpleAction *action, GVariant *value,
         return;
     }
 
-    w = ghb_dict_get_int(ud->prefs, "presets_window_width");
-    h = ghb_dict_get_int(ud->prefs, "presets_window_height");
+    w = ghb_prefs_get_int(ud->prefs, "presets-window-width");
+    h = ghb_prefs_get_int(ud->prefs, "presets-window-height");
 
     presets_window = ghb_builder_widget("presets_window");
     if (w > 200 && h > 200)
@@ -1242,17 +1131,14 @@ presets_window_save_size_cb (GtkWidget *widget, GParamSpec *spec, gpointer data)
     if (gtk_widget_get_visible(widget))
     {
         gint w, h, ww, wh;
-        w = ghb_dict_get_int(ud->prefs, "presets_window_width");
-        h = ghb_dict_get_int(ud->prefs, "presets_window_height");
+        w = ghb_prefs_get_int(ud->prefs, "presets-window-width");
+        h = ghb_prefs_get_int(ud->prefs, "presets-window-height");
         gtk_window_get_default_size(GTK_WINDOW(widget), &ww, &wh);
 
         if ( w != ww || h != wh )
         {
-            ghb_dict_set_int(ud->prefs, "presets_window_width", ww);
-            ghb_dict_set_int(ud->prefs, "presets_window_height", wh);
-            ghb_pref_set(ud->prefs, "presets_window_width");
-            ghb_pref_set(ud->prefs, "presets_window_height");
-            ghb_prefs_store();
+            ghb_prefs_set_int(ud->prefs, "presets-window-width", ww);
+            ghb_prefs_set_int(ud->prefs, "presets-window-height", wh);
         }
     }
 }
@@ -1925,16 +1811,6 @@ ghb_settings_to_preset(GhbValue *settings)
     return preset;
 }
 
-static guint prefs_timeout_id = 0;
-
-static gboolean
-delayed_store_prefs(gpointer data)
-{
-    write_config_file("preferences.json", prefsDict);
-    prefs_timeout_id = 0;
-    return FALSE;
-}
-
 static void
 store_presets (void)
 {
@@ -1947,22 +1823,6 @@ store_presets (void)
     hb_presets_write_json(presets, path);
     g_free(config);
     g_free(path);
-}
-
-static void
-store_prefs(void)
-{
-    if (prefs_timeout_id != 0)
-    {
-        GMainContext *mc;
-        GSource *source;
-
-        mc = g_main_context_default();
-        source = g_main_context_find_source_by_id(mc, prefs_timeout_id);
-        if (source != NULL)
-            g_source_destroy(source);
-    }
-    prefs_timeout_id = g_timeout_add(100, (GSourceFunc)delayed_store_prefs, NULL);
 }
 
 void
@@ -2171,12 +2031,12 @@ preset_import_response_cb (GtkFileChooser *chooser, GtkResponseType response,
             preset_write_response(NULL, GTK_RESPONSE_ACCEPT, data);
         }
 
-        const char *exportDir = ghb_dict_get_string(ud->prefs, "ExportDirectory");
+        g_autofree char *exportDir = ghb_prefs_get_string_or(ud->prefs, "export-directory",
+                                                             g_get_user_special_dir(G_USER_DIRECTORY_DOCUMENTS));
         char *dir = g_path_get_dirname(filename);
         if (strcmp(dir, exportDir) != 0)
         {
-            ghb_dict_set_string(ud->prefs, "ExportDirectory", dir);
-            ghb_pref_save(ud->prefs, "ExportDirectory");
+            ghb_prefs_set_string(ud->prefs, "export-directory", dir);
         }
         g_free(filename);
         g_free(dir);
@@ -2245,7 +2105,7 @@ preset_import_action_cb(GSimpleAction *action, GVariant *param,
 {
     GtkWindow       *hb_window;
     GtkFileChooser  *chooser;
-    const gchar     *exportDir;
+    g_autofree char *exportDir;
     GtkFileFilter   *filter;
 
     hb_window = GTK_WINDOW(ghb_builder_widget("hb_window"));
@@ -2258,11 +2118,8 @@ preset_import_action_cb(GSimpleAction *action, GVariant *param,
     filter = ghb_add_file_filter(chooser, _("Presets (*.json)"), "FilterJSON");
     gtk_file_chooser_set_filter(chooser, filter);
 
-    exportDir = ghb_dict_get_string(ud->prefs, "ExportDirectory");
-    if (exportDir == NULL || exportDir[0] == '\0')
-    {
-        exportDir = ".";
-    }
+    exportDir = ghb_prefs_get_string_or(ud->prefs, "export-directory",
+                                        g_get_user_special_dir(G_USER_DIRECTORY_DOCUMENTS));
     ghb_file_chooser_set_initial_file(chooser, exportDir);
 
     ghb_file_chooser_set_modal(chooser, TRUE);
@@ -2275,7 +2132,7 @@ preset_export_response_cb(GtkFileChooser *chooser,
                           GtkResponseType response, signal_user_data_t *ud)
 {
     hb_preset_index_t *path;
-    const gchar       *exportDir;
+    g_autofree char   *exportDir = NULL;
     gchar             *filename;
     GhbValue          *dict;
 
@@ -2312,12 +2169,12 @@ preset_export_response_cb(GtkFileChooser *chooser,
 
         // export the preset
         hb_presets_write_json(dict, filename);
-        exportDir = ghb_dict_get_string(ud->prefs, "ExportDirectory");
+        exportDir = ghb_prefs_get_string_or(ud->prefs, "export-directory",
+                                            g_get_user_special_dir(G_USER_DIRECTORY_DOCUMENTS));
         dir = g_path_get_dirname(filename);
         if (strcmp(dir, exportDir) != 0)
         {
-            ghb_dict_set_string(ud->prefs, "ExportDirectory", dir);
-            ghb_pref_save(ud->prefs, "ExportDirectory");
+            ghb_prefs_set_string(ud->prefs, "export-directory", dir);
         }
         g_free(dir);
         g_free(filename);
@@ -2333,7 +2190,7 @@ preset_export_action_cb(GSimpleAction *action, GVariant *param,
     hb_preset_index_t    *path;
     GtkWindow            *hb_window;
     GtkFileChooser       *chooser;
-    const gchar          *exportDir;
+    g_autofree char      *exportDir = NULL;
     gchar                *filename;
     GhbValue             *dict;
     char                 *preset_name;
@@ -2369,11 +2226,8 @@ preset_export_action_cb(GSimpleAction *action, GVariant *param,
                                    _("_Save"),
                                    _("_Cancel"));
 
-    exportDir = ghb_dict_get_string(ud->prefs, "ExportDirectory");
-    if (exportDir == NULL || exportDir[0] == '\0')
-    {
-        exportDir = ".";
-    }
+    exportDir = ghb_prefs_get_string_or(ud->prefs, "export-directory",
+                                        g_get_user_special_dir(G_USER_DIRECTORY_DOCUMENTS));
 
     // Clean up preset name for use as a filename.  Removing leading
     // and trailing whitespace and filename illegal characters.

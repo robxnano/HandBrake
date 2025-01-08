@@ -233,7 +233,7 @@ chapter_list_export (GtkFileChooser *chooser,
                      GtkResponseType response, signal_user_data_t *ud)
 {
     gchar             *filename, *dir;
-    const gchar       *exportDir;
+    g_autofree char   *exportDir = NULL;
     GhbValue          *chapter_list;
 
     if (response == GTK_RESPONSE_ACCEPT)
@@ -250,12 +250,12 @@ chapter_list_export (GtkFileChooser *chooser,
         filename = ghb_file_chooser_get_filename(chooser);
 
         chapter_list_export_xml(filename, chapter_list);
-        exportDir = ghb_dict_get_string(ud->prefs, "ExportDirectory");
+        exportDir = ghb_prefs_get_string_or(ud->prefs, "export-directory",
+                                            g_get_user_special_dir(G_USER_DIRECTORY_DOCUMENTS));
         dir = g_path_get_dirname(filename);
         if (strcmp(dir, exportDir) != 0)
         {
-            ghb_dict_set_string(ud->prefs, "ExportDirectory", dir);
-            ghb_pref_save(ud->prefs, "ExportDirectory");
+            ghb_prefs_set_string(ud->prefs, "export-directory", dir);
         }
         g_free(dir);
         g_free(filename);
@@ -446,7 +446,7 @@ chapters_export_action_cb (GSimpleAction *action, GVariant *param,
 {
     GtkWindow       *hb_window;
     GtkFileChooser  *dialog;
-    const gchar     *exportDir;
+    g_autofree char *exportDir;
     GtkFileFilter   *filter;
 
     hb_window = GTK_WINDOW(ghb_builder_widget("hb_window"));
@@ -460,9 +460,9 @@ chapters_export_action_cb (GSimpleAction *action, GVariant *param,
     gtk_file_chooser_set_filter(dialog, filter);
     gtk_file_chooser_set_current_name(dialog, "chapters.xml");
 
-    exportDir = ghb_dict_get_string(ud->prefs, "ExportDirectory");
-    if (exportDir && exportDir[0] != '\0')
-        ghb_file_chooser_set_initial_file(dialog, exportDir);
+    exportDir = ghb_prefs_get_string_or(ud->prefs, "export-directory",
+                                        g_get_user_special_dir(G_USER_DIRECTORY_DOCUMENTS));
+    ghb_file_chooser_set_initial_file(dialog, exportDir);
 
     ghb_file_chooser_set_modal(dialog, TRUE);
     g_signal_connect(dialog, "response", G_CALLBACK(chapter_list_export), ud);
@@ -476,6 +476,7 @@ chapters_import_action_cb (GSimpleAction *action, GVariant *param,
     GtkWindow       *hb_window;
     GtkFileChooser  *dialog;
     GtkFileFilter   *filter;
+    g_autofree char *export_dir;
 
     hb_window = GTK_WINDOW(ghb_builder_widget("hb_window"));
     dialog = ghb_file_chooser_new("Import Chapters", hb_window,
@@ -486,8 +487,9 @@ chapters_import_action_cb (GSimpleAction *action, GVariant *param,
     ghb_add_file_filter(dialog, _("All Files"), "FilterAll");
     filter = ghb_add_file_filter(dialog, _("Chapters (*.xml)"), "FilterXML");
     gtk_file_chooser_set_filter(dialog, filter);
-    ghb_file_chooser_set_initial_file(dialog,
-                                      ghb_dict_get_string(ud->prefs, "ExportDirectory"));
+    export_dir = ghb_prefs_get_string_or(ud->prefs, "export-directory",
+                                         g_get_user_special_dir(G_USER_DIRECTORY_DOCUMENTS));
+    ghb_file_chooser_set_initial_file(dialog, export_dir);
 
     ghb_file_chooser_set_modal(dialog, TRUE);
     g_signal_connect(dialog, "response", G_CALLBACK(chapters_import_response_cb), ud);

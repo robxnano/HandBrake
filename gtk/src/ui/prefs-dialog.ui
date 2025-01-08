@@ -1,0 +1,673 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <requires lib="gtk" version="4.0"/>
+  <template class="GhbPrefsDialog" parent="GtkWindow">
+    <property name="title" translatable="yes">Preferences</property>
+    <property name="modal">true</property>
+    <signal name="close-request" handler="prefs_dialog_close_request_cb" swapped="no"/>
+    <child type="titlebar">
+      <object class="GtkHeaderBar">
+        <child type="title">
+          <object class="GtkStackSwitcher" id="prefs_switcher">
+            <property name="stack">prefs_stack</property>
+          </object>
+        </child>
+      </object>
+    </child>
+    <child>
+      <object class="GtkBox">
+        <property name="spacing">2</property>
+        <property name="margin-start">12</property>
+        <property name="margin-end">12</property>
+        <property name="margin-top">12</property>
+        <property name="margin-bottom">12</property>
+        <child>
+          <object class="GtkBox">
+            <child>
+              <object class="GtkBox">
+                <property name="orientation">vertical</property>
+                <property name="hexpand">true</property>
+                <child>
+                  <object class="GtkImage">
+                    <property name="pixel-size">64</property>
+                    <property name="icon-name">fr.handbrake.ghb</property>
+                    <property name="accessible-role">presentation</property>
+                    <child>
+                      <object class="GtkGestureClick">
+                        <signal name="pressed" handler="easter_egg_multi_cb" object="GhbPrefsDialog" swapped="no"/>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <child>
+              <object class="GtkStack" id="prefs_stack">
+                <property name="hexpand">true</property>
+                <child>
+                  <object class="GtkStackPage">
+                    <property name="title" translatable="yes">General</property>
+                    <property name="child">
+                      <object class="GtkBox">
+                        <property name="orientation">vertical</property>
+                        <property name="spacing">2</property>
+                        <child>
+                          <object class="GtkCheckButton" id="auto_name">
+                            <property name="label" translatable="yes">Use automatic naming (uses modified source name)</property>
+                            <property name="focusable">true</property>
+                            <property name="tooltip-text" translatable="yes">Create destination filename from source filename or volume label</property>
+                            <property name="halign">start</property>
+                            <!--<signal name="toggled" handler="pref_changed_cb" swapped="no"/>-->
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkBox" id="auto_name_box">
+                            <property name="margin-start">18</property>
+                            <property name="margin-end">8</property>
+                            <property name="margin-start">18</property>
+                            <property name="margin-end">8</property>
+                            <property name="spacing">4</property>
+                            <property name="sensitive" bind-source="auto_name" bind-property="active" bind-flags="sync-create"/>
+                            <child>
+                              <object class="GtkLabel" id="auto_name_template_label">
+                                <property name="halign">end</property>
+                                <property name="label" translatable="yes">Auto-Name Template</property>
+                                <property name="use-markup">true</property>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkEntry" id="auto_name_template">
+                                <property name="focusable">true</property>
+                                <property name="secondary-icon-name">help-about-symbolic</property>
+                                <property name="secondary-icon-tooltip-text" translatable="yes">Available Options: {source-path} {source} {title} {preset} {chapters} {date} {time} {creation-date} {creation-time} {modification-date} {modification-time} {codec} {bit-depth} {quality} {bitrate} {width} {height}</property>
+                                <property name="activates-default">true</property>
+                                <property name="width-chars">30</property>
+                                <property name="truncate-multiline">true</property>
+                                <accessibility>
+                                  <relation name="labelled-by">auto_name_template_label</relation>
+                                </accessibility>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkCheckButton" id="use_m4v">
+                            <property name="label" translatable="yes">Use iPod/iTunes friendly (.m4v) file extension for MP4</property>
+                            <property name="focusable">true</property>
+                            <property name="halign">start</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkBox">
+                            <property name="spacing">4</property>
+                            <child>
+                              <object class="GtkLabel" id="preview_count_label">
+                                <property name="label" translatable="yes">Number of previews</property>
+                                <property name="use-markup">true</property>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkSpinButton" id="preview_count">
+                                <property name="focusable">true</property>
+                                <property name="width-chars">6</property>
+                                <property name="adjustment">
+                                  <object class="GtkAdjustment">
+                                    <property name="lower">5</property>
+                                    <property name="upper">60</property>
+                                    <property name="value">10</property>
+                                    <property name="step-increment">5</property>
+                                    <property name="page-increment">10</property>
+                                  </object>
+                                </property>
+                                <property name="numeric">true</property>
+                                <accessibility>
+                                  <relation name="labelled-by">preview_count_label</relation>
+                                </accessibility>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkBox">
+                            <property name="spacing">4</property>
+                            <child>
+                              <object class="GtkLabel" id="min_title_duration_label">
+                                <property name="label" translatable="yes">Minimum DVD/Blu-ray title duration (seconds)</property>
+                                <property name="use-markup">true</property>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkSpinButton" id="min_title_duration">
+                                <property name="focusable">true</property>
+                                <property name="width-chars">6</property>
+                                <property name="adjustment">
+                                   <object class="GtkAdjustment">
+                                    <property name="upper">7200</property>
+                                    <property name="value">10</property>
+                                    <property name="step-increment">5</property>
+                                    <property name="page-increment">10</property>
+                                  </object>
+                                </property>
+                                <property name="numeric">true</property>
+                                <accessibility>
+                                  <relation name="labelled-by">min_title_duration_label</relation>
+                                </accessibility>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkBox">
+                            <property name="spacing">4</property>
+                            <child>
+                              <object class="GtkCheckButton" id="limit_max_duration">
+                                <property name="label" translatable="yes">Maximum DVD/Blu-ray title duration (seconds)</property>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkSpinButton" id="max_title_duration">
+                                <property name="focusable">true</property>
+                                <property name="width-chars">6</property>
+                                <property name="adjustment">
+                                  <object class="GtkAdjustment">
+                                    <property name="upper">36000</property>
+                                    <property name="value">10</property>
+                                    <property name="step-increment">5</property>
+                                    <property name="page-increment">10</property>
+                                  </object>
+                                </property>
+                                <property name="numeric">true</property>
+                                <property name="sensitive" bind-source="limit_max_duration" bind-property="active" bind-flags="sync-create"/>
+                                <accessibility>
+                                  <relation name="labelled-by">limit_max_duration</relation>
+                                </accessibility>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkCheckButton" id="keep_duplicate_titles">
+                            <property name="label" translatable="yes">Keep duplicate titles</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkCheckButton" id="sync_title_settings">
+                            <property name="label" translatable="yes">Use the same settings for all titles in a batch</property>
+                            <property name="focusable">true</property>
+                            <property name="tooltip-text" translatable="yes">When checked, every title will use the same settings when adding a
+batch of titles to the queue.
+
+Uncheck this if you want to allow changing each title&apos;s settings independently.</property>
+                            <property name="halign">start</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkCheckButton" id="show_mini_preview">
+                            <property name="label" translatable="yes">Show preview image in Summary tab</property>
+                            <property name="focusable">true</property>
+                            <property name="halign">start</property>
+                            <property name="tooltip-text" translatable="yes">Uncheck this if you want to hide the video preview image on the Summary tab for privacy reasons.</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkLabel">
+                            <property name="halign">start</property>
+                            <property name="margin-start">4</property>
+                            <property name="valign">start</property>
+                            <property name="label" translatable="yes">Excluded File Extensions:</property>
+                            <property name="use-markup">true</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GhbStringList" id="excluded_file_extensions">
+                            <property name="focusable">true</property>
+                            <property name="halign">start</property>
+                            <property name="margin-start">4</property>
+                            <property name="tooltip-text" translatable="yes">The following file extensions will be ignored when scanning a folder. The list is case insensitive.</property>
+                          </object>
+                        </child>
+                      </object>
+                    </property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkStackPage">
+                    <property name="title" translatable="yes" context="Queue tab in Preferences window">Queue</property>
+                    <property name="child">
+                      <object class="GtkBox">
+                        <property name="orientation">vertical</property>
+                        <property name="margin-top">6</property>
+                        <property name="margin-bottom">6</property>
+                        <property name="margin-start">12</property>
+                        <child>
+                          <object class="GtkBox">
+                            <property name="orientation">horizontal</property>
+                            <property name="spacing">2</property>
+                            <child>
+                              <object class="GtkCheckButton" id="disk_free_check">
+                                <property name="label" translatable="yes">Pause queue if disk space is lower than:</property>
+                                <property name="focusable">true</property>
+                                <property name="halign">start</property>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkBox">
+                                <property name="spacing">4</property>
+                                <property name="sensitive" bind-source="disk_free_check" bind-property="active" bind-flags="sync-create"/>
+                                <child>
+                                  <object class="GtkSpinButton" id="disk_free_limit">
+                                    <property name="width-chars">4</property>
+                                    <property name="focusable">true</property>
+                                    <property name="valign">center</property>
+                                    <property name="adjustment">
+                                      <object class="GtkAdjustment">
+                                        <property name="lower">1</property>
+                                        <property name="upper">100000</property>
+                                        <property name="step-increment">1</property>
+                                        <property name="page-increment">10</property>
+                                      </object>
+                                    </property>
+                                    <accessibility>
+                                      <property name="label" translatable="yes">Disk Free Space Limit</property>
+                                    </accessibility>
+                                  </object>
+                                </child>
+                                <child>
+                                  <object class="GtkLabel">
+                                    <property name="halign">start</property>
+                                    <property name="label" translatable="yes">GB</property>
+                                    <property name="hexpand">true</property>
+                                  </object>
+                                </child>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkCheckButton" id="remove_finished_jobs">
+                            <property name="label" translatable="yes">Clear completed jobs after an encode completes</property>
+                            <property name="focusable">true</property>
+                            <property name="tooltip-text" translatable="yes">By default, completed jobs remain in the queue and are marked as complete.
+  Check this if you want the queue to clean itself up by deleting completed jobs.</property>
+                            <property name="halign">start</property>
+                          </object>
+                        </child>
+                        <child>
+                      <object class="GtkLabel" id="pause_encoding_label">
+                        <property name="label" translatable="yes">Power Saving</property>
+                        <property name="visible">false</property>
+                        <property name="margin-start">4</property>
+                        <property name="margin-start">4</property>
+                        <property name="margin-top">4</property>
+                        <property name="margin-bottom">4</property>
+                        <property name="halign">start</property>
+                        <attributes>
+                          <attribute name="weight" value="bold"></attribute>
+                        </attributes>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkCheckButton" id="pause_encoding_on_power_save">
+                        <property name="label" translatable="yes">Pause encoding when in Power Saver mode</property>
+                        <property name="visible">false</property>
+                        <property name="focusable">true</property>
+                        <property name="halign">start</property>
+                        <property name="tooltip-text" translatable="yes">If checked, encoding will be paused when the device
+enters Power Saver mode. Encoding will resume when
+Power Saver mode is disabled.</property>
+                        <!--<signal name="toggled" handler="pref_changed_cb" swapped="no"/>-->
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkCheckButton" id="pause_encoding_on_battery_power">
+                        <property name="label" translatable="yes">Pause encoding when on battery power</property>
+                        <property name="visible">false</property>
+                        <property name="focusable">true</property>
+                        <property name="halign">start</property>
+                        <property name="tooltip-text" translatable="yes">If checked, encoding will be paused when charger is
+unplugged. Encoding will resume when reconnected to
+a mains power source.</property>
+                        <!--<signal name="toggled" handler="pref_changed_cb" swapped="no"/>-->
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkCheckButton" id="pause_encoding_on_low_battery">
+                        <property name="label" translatable="yes">Pause encoding when battery is low</property>
+                        <property name="visible">false</property>
+                        <property name="focusable">true</property>
+                        <property name="halign">start</property>
+                        <property name="tooltip-text" translatable="yes">If checked, encoding will be paused when the battery
+level is low. Encoding will resume when the
+battery is charged.</property>
+                      </object>
+                    </child>
+                        <child>
+                          <object class="GtkLabel">
+                            <property name="halign">start</property>
+                            <property name="margin-start">4</property>
+                            <property name="margin-top">4</property>
+                            <property name="margin-bottom">4</property>
+                            <property name="label" translatable="yes">When Done</property>
+                            <attributes>
+                              <attribute name="weight" value="bold"></attribute>
+                            </attributes>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkBox">
+                            <property name="spacing">4</property>
+                            <child>
+                              <object class="GtkLabel">
+                                <property name="margin-start">4</property>
+                                <property name="label" translatable="yes">Default action when queue is completed:</property>
+                                <property name="use-markup">true</property>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkDropDown" id="when_complete">
+                                <property name="model">
+                                  <object class="GtkStringList"/>
+                                </property>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkCheckButton" id="notify_on_queue_done">
+                            <property name="label" translatable="yes">Show notification when queue is completed</property>
+                            <property name="focusable">true</property>
+                            <property name="halign">start</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkCheckButton" id="notify_on_encode_done">
+                            <property name="label" translatable="yes">Show notification when each item is completed</property>
+                            <property name="focusable">true</property>
+                            <property name="halign">start</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkBox">
+                            <property name="spacing">4</property>
+                            <child>
+                              <object class="GtkCheckButton" id="send_file_to">
+                                <property name="label" translatable="yes">Send file to:</property>
+                                <property name="halign">start</property>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkEntry" id="send_file_to_target">
+                                <property name="width-chars">30</property>
+                                <property name="truncate-multiline">1</property>
+                                <property name="sensitive"
+                                        bind-source="send_file_to"
+                                        bind-property="active"
+                                        bind-flags="sync-create"/>
+                                <accessibility>
+                                  <relation name="labelled-by">send_file_to</relation>
+                                </accessibility>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                      </object>
+                    </property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkStackPage">
+                    <property name="title" translatable="yes">Advanced</property>
+                    <property name="child">
+                      <object class="GtkBox">
+                        <property name="orientation">vertical</property>
+                        <property name="margin-top">6</property>
+                        <property name="margin-bottom">6</property>
+                        <property name="margin-start">12</property>
+                        <child>
+                          <object class="GtkGrid">
+                            <property name="row-spacing">2</property>
+                            <child>
+                              <object class="GtkBox">
+                                <property name="orientation">horizontal</property>
+                                <property name="spacing">6</property>
+                                <property name="tooltip-text" translatable="yes">Select the language to use for the HandBrake user interface.</property>
+                                <child>
+                                  <object class="GtkLabel">
+                                    <property name="label" translatable="yes">Display Language:</property>
+                                  </object>
+                                </child>
+                                <child>
+                                  <object class="GtkDropDown" id="ui_language">
+                                    <property name="model">
+                                      <object class="GtkStringList"/>
+                                    </property>
+                                  </object>
+                                </child>
+                                <layout>
+                                  <property name="row">0</property>
+                                  <property name="column">0</property>
+                                </layout>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkBox">
+                                <property name="orientation">vertical</property>
+                                <property name="spacing">2</property>
+                                <child>
+                                  <object class="GtkCheckButton" id="custom_tmp_enable">
+                                    <property name="label" translatable="yes">Set a custom directory for Handbrake temporary files</property>
+                                    <property name="focusable">true</property>
+                                    <property name="tooltip-text" translatable="yes">Temporary files that HandBrake creates will be placed under this directory.
+
+  Changing this setting will require restarting HandBrake.
+
+  This setting overrides the TEMP environment variable that is normally used to define this directory.
+
+  Flatpak users may need to set this for certain workflows to work properly. The default size of the TEMP directory in a flatpak sandbox is 1/2 physical memory size and may be too small for things like the 2-pass stats file.</property>
+                                    <property name="halign">start</property>
+                                  </object>
+                                </child>
+                                <child>
+                                  <object class="GhbFileButton" id="custom_tmp_dir">
+                                    <property name="visible">True</property>
+                                    <property name="sensitive">False</property>
+                                    <property name="can-focus">True</property>
+                                    <property name="tooltip-text" translatable="yes">Temporary files that HandBrake creates will be placed under this directory.
+
+  Changing this setting will require restarting HandBrake.
+
+  This setting overrides the TEMP environment variable that is normally used to define this directory.
+
+  Flatpak users may need to set this for certain workflows to work properly. The default size of the TEMP directory in a flatpak sandbox is 1/2 physical memory size and may be too small for things like the 2-pass stats file.</property>
+                                    <property name="action">select-folder</property>
+                                    <property name="hexpand">True</property>
+                                    <property name="title" translatable="yes">Temp Directory</property>
+                                    <property name="margin-start">21</property>
+                                    <property name="sensitive"
+                                        bind-source="custom_tmp_enable"
+                                        bind-property="active"
+                                        bind-flags="sync-create"/>
+                                  </object>
+                                </child>
+                                <layout>
+                                  <property name="row">1</property>
+                                  <property name="column">0</property>
+                                </layout>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkBox">
+                                <property name="spacing">4</property>
+                                <child>
+                                  <object class="GtkDropDown" id="video_quality_granularity">
+                                    <property name="valign">center</property>
+                                    <property name="model">
+                                      <object class="GtkStringList"/>
+                                    </property>
+                                  </object>
+                                </child>
+                                <child>
+                                  <object class="GtkLabel">
+                                    <property name="halign">start</property>
+                                    <property name="label" translatable="yes">Constant Quality fractional granularity</property>
+                                    <property name="hexpand">true</property>
+                                  </object>
+                                </child>
+                                <layout>
+                                  <property name="row">2</property>
+                                  <property name="column">0</property>
+                                </layout>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkCheckButton" id="use_dvdnav">
+                                <property name="label" translatable="yes">Use dvdnav (instead of libdvdread)</property>
+                                <property name="focusable">true</property>
+                                <property name="halign">start</property>
+                                <layout>
+                                  <property name="row">3</property>
+                                  <property name="column">0</property>
+                                </layout>
+                              </object>
+                            </child>
+                            <child>
+                            </child>
+                            <child>
+                              <object class="GtkBox">
+                                <property name="orientation">vertical</property>
+                                <property name="spacing">2</property>
+                                <child>
+                                  <object class="GtkCheckButton" id="encode_log_location">
+                                    <property name="label" translatable="yes">Put individual encode logs in same location as movie</property>
+                                    <property name="focusable">true</property>
+                                    <property name="halign">start</property>
+                                  </object>
+                                </child>
+                                <child>
+                                  <object class="GtkBox">
+                                    <property name="spacing">4</property>
+                                    <property name="margin-start">21</property>
+                                    <child>
+                                      <object class="GtkDropDown" id="logging_level">
+                                        <property name="valign">center</property>
+                                        <property name="model">
+                                          <object class="GtkStringList"/>
+                                        </property>
+                                      </object>
+                                    </child>
+                                    <child>
+                                      <object class="GtkLabel">
+                                        <property name="halign">start</property>
+                                        <property name="label" translatable="yes">Activity Log Verbosity Level</property>
+                                        <property name="hexpand">true</property>
+                                      </object>
+                                    </child>
+                                  </object>
+                                </child>
+                                <child>
+                                  <object class="GtkBox">
+                                    <property name="spacing">4</property>
+                                    <property name="margin-start">21</property>
+                                    <child>
+                                      <object class="GtkDropDown" id="log_longevity">
+                                        <property name="valign">center</property>
+                                        <property name="model">
+                                          <object class="GtkStringList"/>
+                                        </property>
+                                      </object>
+                                    </child>
+                                    <child>
+                                      <object class="GtkLabel">
+                                        <property name="halign">start</property>
+                                        <property name="label" translatable="yes">Activity Log Longevity</property>
+                                      </object>
+                                    </child>
+                                  </object>
+                                </child>
+                                <layout>
+                                  <property name="row">4</property>
+                                  <property name="column">0</property>
+                                </layout>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkCheckButton" id="reduce_hd_preview">
+                                <property name="label" translatable="yes">Scale down High Definition previews</property>
+                                <property name="focusable">true</property>
+                                <property name="halign">start</property>
+                                <!--<signal name="toggled" handler="pref_changed_cb" swapped="no"/>-->
+                                <layout>
+                                  <property name="row">5</property>
+                                  <property name="column">0</property>
+                                </layout>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkCheckButton" id="auto_scan">
+                                <property name="label" translatable="yes">Automatically Scan DVD when loaded</property>
+                                <property name="focusable">true</property>
+                                <property name="tooltip-text" translatable="yes">Scans the DVD whenever a new disc is loaded</property>
+                                <property name="halign">start</property>
+                                <!--<signal name="toggled" handler="pref_changed_cb" swapped="no"/>-->
+                                <layout>
+                                  <property name="row">6</property>
+                                  <property name="column">0</property>
+                                </layout>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkBox">
+                                <property name="spacing">4</property>
+                                <child>
+                                  <object class="GtkSpinButton" id="activity_font_size">
+                                    <property name="width-chars">3</property>
+                                    <property name="focusable">true</property>
+                                    <property name="valign">center</property>
+                                    <property name="adjustment">
+                                      <object class="GtkAdjustment">
+                                        <property name="upper">32</property>
+                                        <property name="lower">6</property>
+                                        <property name="step-increment">1</property>
+                                        <property name="page-increment">10</property>
+                                      </object>
+                                    </property>
+                                    <accessibility>
+                                      <relation name="labelled-by">activity_font_size_label</relation>
+                                    </accessibility>
+                                  </object>
+                                </child>
+                                <child>
+                                  <object class="GtkLabel" id="activity_font_size_label">
+                                    <property name="halign">start</property>
+                                    <property name="label" translatable="yes">Activity Window Font Size</property>
+                                    <property name="hexpand">true</property>
+                                  </object>
+                                </child>
+                                <layout>
+                                  <property name="row">7</property>
+                                  <property name="column">0</property>
+                                </layout>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkCheckButton" id="hbfd_feature">
+                            <property name="visible">false</property>
+                            <property name="label" translatable="yes">Allow HandBrake For Dummies</property>
+                            <property name="focusable">true</property>
+                            <property name="halign">start</property>
+                          </object>
+                        </child>
+                      </object>
+                    </property>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+  </template>
+</interface>

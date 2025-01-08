@@ -61,6 +61,7 @@ struct preview_s
 };
 
 static void live_preview_progress_cb(GtkMediaStream *video, GParamSpec *spec, signal_user_data_t *ud);
+void preview_duration_changed_cb (GSettings *gsettings, char *key, gpointer data);
 
 static void
 get_display_size (GtkWidget *widget, int *w, int *h)
@@ -188,7 +189,7 @@ preview_set_render_size(signal_user_data_t *ud, int width, int height)
     widget = ghb_builder_widget("preview_image");
     frame = ghb_builder_widget("preview_image_frame");
 
-    if (ghb_dict_get_bool(ud->prefs, "reduce_hd_preview"))
+    if (ghb_prefs_get_boolean(ud->prefs, "reduce-hd-preview"))
         factor = 90;
     else
         factor = 100;
@@ -431,10 +432,8 @@ live_preview_play_clicked_cb (GtkWidget *widget, gpointer data)
         ghb_dict_set_string(dest, "File", name);
         ghb_dict_set_string(range, "Type", "preview");
         ghb_dict_set_int(range, "Start", ud->preview->frame + 1);
-        ghb_dict_set_int(range, "End",
-            ghb_dict_get_int(ud->prefs, "live_duration") * 90000);
-        ghb_dict_set_int(range, "SeekPoints",
-            ghb_dict_get_int(ud->prefs, "preview_count"));
+        ghb_dict_set_int(range, "End", ghb_prefs_get_int(ud->prefs, "preview-duration") * 90000);
+        ghb_dict_set_int(range, "SeekPoints", ghb_prefs_get_int(ud->prefs, "preview-count"));
 
         GhbValue *job_dict = ghb_dict_get(js, "Job");
         ud->preview->live_id = ghb_add_job(ghb_live_handle(), job_dict);
@@ -625,7 +624,7 @@ init_preview_image(signal_user_data_t *ud)
     }
 
     // Update preview buttons on summary page
-    int preview_count = ghb_dict_get_int(ud->prefs, "preview_count");
+    int preview_count = ghb_prefs_get_int(ud->prefs, "preview-count");
     g_autofree char *count_label = g_strdup_printf("%d/%d",
                                                    ud->preview->frame + 1, preview_count);
     gtk_label_set_text(GTK_LABEL(ghb_builder_widget("summary_preview_count")), count_label);
@@ -661,6 +660,7 @@ G_MODULE_EXPORT void
 show_preview_action_cb(GSimpleAction *action, GVariant *value,
                        signal_user_data_t *ud)
 {
+    static gboolean preview_init = FALSE;
     GtkWidget *widget;
 #if 0
     gint title_id, titleindex;
@@ -671,6 +671,13 @@ show_preview_action_cb(GSimpleAction *action, GVariant *value,
     visible &= title != NULL;
 #endif
     widget = ghb_builder_widget("preview_window");
+    if (!preview_init)
+    {
+        preview_init = TRUE;
+        GSettings *gsettings = ghb_prefs_get_gsettings(ghb_application_get_prefs(GHB_APPLICATION(g_application_get_default())));
+        g_settings_bind(gsettings, "preview-duration", ghb_builder_widget("preview_duration"), "value", G_SETTINGS_BIND_DEFAULT | G_SETTINGS_BIND_NO_SENSITIVITY);
+        g_signal_connect(gsettings, "changed::preview-duration", G_CALLBACK(preview_duration_changed_cb), NULL);
+    }
     gtk_window_present(GTK_WINDOW(widget));
 }
 
@@ -714,14 +721,11 @@ preview_close_request_cb (GtkWidget *widget, gpointer data)
 }
 
 G_MODULE_EXPORT void
-preview_duration_changed_cb (GtkWidget *widget, gpointer data)
+preview_duration_changed_cb (GSettings *gsettings, char *key, gpointer data)
 {
     signal_user_data_t *ud = ghb_ud();
     ghb_log_func();
     ghb_live_reset(ud);
-    ghb_widget_to_setting (ud->prefs, widget);
-    const gchar *name = ghb_get_setting_key(widget);
-    ghb_pref_save(ud->prefs, name);
 }
 
 static guint hud_timeout_id = 0;

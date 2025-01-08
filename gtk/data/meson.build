@@ -1,6 +1,11 @@
 # Copyright (C) 2023-2025 HandBrake Team
 # SPDX-License-Identifier: GPL-2.0-or-later
 
+schemadir = get_option('datadir') / 'glib-2.0/schemas'
+settings_schema = 'fr.handbrake.ghb.gschema.xml'
+install_data(settings_schema, install_dir: schemadir)
+gnome.compile_schemas(depend_files: settings_schema)
+
 data = gnome.compile_resources('data_res', 'data_res.gresource.xml',
   source_dir: meson.current_build_dir(),
   c_name: 'ghb_data')
@@ -33,6 +38,10 @@ metainfo = i18n.merge_file(
 appstreamcli = find_program('appstreamcli', required: false, disabler: true)
 test('Validate metainfo file', appstreamcli,
   args: ['validate', '--strict', '--no-net', '--explain', metainfo])
+
+glib_compile_schemas = find_program('glib-compile-schemas', required: false, disabler: true)
+test('Validate settings schema', glib_compile_schemas,
+  args: ['--dry-run', '--strict', meson.current_source_dir()])
 
 desktop_utils = find_program('desktop-file-validate', required: false, disabler: true)
 test('Validate desktop file', desktop_utils, args: desktop)

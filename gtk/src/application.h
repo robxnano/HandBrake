@@ -5,6 +5,7 @@
 
 #include "common.h"
 #include "settings.h"
+#include "model/prefs.h"
 
 G_BEGIN_DECLS
 
@@ -20,6 +21,7 @@ G_DECLARE_FINAL_TYPE(GhbApplication, ghb_application, GHB, APPLICATION, GtkAppli
 GhbApplication *ghb_application_new(const char *exe_name);
 
 const char *ghb_application_get_app_dir(GhbApplication *self);
+GhbPrefs *ghb_application_get_prefs(GhbApplication *self);
 
 signal_user_data_t *ghb_ud (void);
 int ghb_get_cancel_status(void);

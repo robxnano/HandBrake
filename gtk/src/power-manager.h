@@ -18,6 +18,7 @@ typedef enum {
 void ghb_power_manager_init (signal_user_data_t *ud);
 void ghb_power_manager_reset (void);
 void ghb_power_manager_dispose (signal_user_data_t *ud);
+gboolean ghb_power_manager_has_battery (void);
 
 G_END_DECLS
 

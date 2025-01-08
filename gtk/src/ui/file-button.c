@@ -279,8 +279,8 @@ ghb_file_button_set_file (GhbFileButton *self, GFile *file)
     }
 
     self->selected_file = g_object_ref(file);
-
-    if (g_file_test(g_file_peek_path(file), G_FILE_TEST_EXISTS))
+    const char *path = g_file_peek_path(file);
+    if (path && g_file_test(g_file_peek_path(file), G_FILE_TEST_EXISTS))
     {
         g_autofree char *file_base = g_file_get_basename(file);
         gtk_label_set_label(self->label, file_base);

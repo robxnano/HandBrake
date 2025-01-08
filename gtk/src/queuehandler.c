@@ -1378,6 +1378,7 @@ static void save_queue_file (signal_user_data_t *ud)
 {
     GtkFileChooser *chooser;
     GtkWindow *hb_window;
+    const char *save_dir;
 
     hb_window = GTK_WINDOW(ghb_builder_widget("hb_window"));
     chooser = ghb_file_chooser_new(_("Export Queue"),
@@ -1386,8 +1387,9 @@ static void save_queue_file (signal_user_data_t *ud)
                                    _("_Save"),
                                    _("_Cancel"));
     gtk_file_chooser_set_current_name(chooser, "queue.json");
-    ghb_file_chooser_set_initial_file(chooser,
-                                      ghb_dict_get_string(ud->prefs, "ExportDirectory"));
+    save_dir = ghb_prefs_get_string_or(ud->prefs, "export-directory",
+                                       g_get_user_special_dir(G_USER_DIRECTORY_DOCUMENTS));
+    ghb_file_chooser_set_initial_file(chooser, save_dir);
 
     ghb_file_chooser_set_modal(chooser, TRUE);
     g_signal_connect(G_OBJECT(chooser), "response", G_CALLBACK(save_queue_file_cb), ud);
@@ -1472,8 +1474,9 @@ static void open_queue_file (signal_user_data_t *ud)
     // Add filters
     ghb_add_file_filter(chooser, _("All Files"), "FilterAll");
     ghb_add_file_filter(chooser, g_content_type_get_description("application/json"), "FilterJSON");
-    ghb_file_chooser_set_initial_file(chooser,
-                                      ghb_dict_get_string(ud->prefs, "ExportDirectory"));
+    g_autofree char *export_dir = ghb_prefs_get_string_or(ud->prefs, "export-directory",
+                                                          g_get_user_special_dir(G_USER_DIRECTORY_DOCUMENTS));
+    ghb_file_chooser_set_initial_file(chooser, export_dir);
 
     ghb_file_chooser_set_modal(chooser, TRUE);
     g_signal_connect(chooser, "response", G_CALLBACK(open_queue_file_cb), ud);
@@ -1576,7 +1579,7 @@ void ghb_low_disk_check (signal_user_data_t *ud)
     GhbValue        *qDict;
     GhbValue        *settings;
 
-    if (skip_disk_space_check || !ghb_dict_get_bool(ud->prefs, "DiskFreeCheck"))
+    if (skip_disk_space_check || !ghb_prefs_get_boolean(ud->prefs, "disk-free-check"))
     {
         return;
     }
@@ -1601,7 +1604,7 @@ void ghb_low_disk_check (signal_user_data_t *ud)
         return;
     }
     // limit is in GB
-    free_limit = ghb_dict_get_int(ud->prefs, "DiskFreeLimitGB") * 1000 * 1000 * 1000;
+    free_limit = ghb_prefs_get_int(ud->prefs, "disk-free-limit") * 1000 * 1000 * 1000;
     if (free_size > free_limit)
     {
         return;
@@ -2040,7 +2043,7 @@ queue_button_press_cb (GtkGesture *gest, int n_press, double x, double y,
 static void
 queue_window_show (signal_user_data_t *ud)
 {
-    gboolean show_sidebar = ghb_dict_get_bool(ud->prefs, "show_queue_sidebar");
+    gboolean show_sidebar = ghb_prefs_get_boolean(ud->prefs, "show-queue-sidebar");
     GtkWidget *widget = ghb_builder_widget("queue_sidebar");
     gtk_widget_set_visible(widget, show_sidebar);
 
@@ -2068,8 +2071,7 @@ queue_show_sidebar_action_cb (GSimpleAction *action, GVariant *param,
     GtkWidget *widget = ghb_builder_widget("queue_sidebar");
     GtkWindow *window = GTK_WINDOW(ghb_builder_widget("queue_window"));
 
-    ghb_dict_set_bool(ud->prefs, "show_queue_sidebar", state);
-    ghb_pref_save(ud->prefs, "show_queue_sidebar");
+    ghb_prefs_set_boolean(ud->prefs, "show-queue-sidebar", state);
     gtk_window_get_default_size(window, &width, &height);
     gtk_widget_set_visible(widget, state);
     gtk_window_set_default_size(window, 1, height);
