@@ -91,12 +91,12 @@ notify_done (gboolean final, gboolean success, gint idx, signal_user_data_t *ud)
     g_autofree char *body = NULL;
     gboolean notify_item, notify_queue;
 
-    notify_item = ghb_dict_get_bool(ud->prefs, "NotifyOnEncodeDone");
-    notify_queue = ghb_dict_get_bool(ud->prefs, "NotifyOnQueueDone");
+    notify_item = ghb_prefs_get_boolean(ud->prefs, "notify-on-encode-done");
+    notify_queue = ghb_prefs_get_boolean(ud->prefs, "notify-on-queue-done");
 
     if (notify_queue && final)
     {
-        const char *msg = ghb_dict_get_string(ud->prefs, "CustomNotificationMessage");
+        g_autofree char *msg = ghb_prefs_get_string(ud->prefs, "custom-notification-message");
         if (msg && msg[0])
         {
             title = g_strdup(msg);
@@ -129,7 +129,7 @@ notify_paused (GhbNotification type, int value, signal_user_data_t *ud)
     int gigabyte, decimal;
 
     if (!ghb_get_queue_done_action() &&
-        !ghb_dict_get_bool(ud->prefs, "NotifyOnEncodeDone"))
+        !ghb_prefs_get_boolean(ud->prefs, "notify-on-encode-done"))
     {
         return;
     }

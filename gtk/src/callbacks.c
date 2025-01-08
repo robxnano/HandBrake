@@ -451,13 +451,8 @@ static GhbBinding widget_bindings[] =
     {"VideoEncoder", "active-id", "svt_av1|svt_av1_10bit|x264|x264_10bit", "x264FastDecode", "visible"},
     {"VideoEncoder", "active-id", "svt_av1|svt_av1_10bit|x264|x264_10bit|x265|x265_10bit|x265_12bit|x265_16bit|mpeg4|mpeg2|VP8|VP9|VP9_10bit|qsv_av1|qsv_av1_10bit|qsv_h264|qsv_h265|qsv_h265_10bit", "VideoOptionExtraWindow", "visible"},
     {"VideoEncoder", "active-id", "svt_av1|svt_av1_10bit|x264|x264_10bit|x265|x265_10bit|x265_12bit|x265_16bit|mpeg4|mpeg2|VP8|VP9|VP9_10bit|qsv_av1|qsv_av1_10bit|qsv_h264|qsv_h265|qsv_h265_10bit", "VideoOptionExtraLabel", "visible"},
-    {"auto_name", "active", NULL, "autoname_box", "sensitive"},
-    {"CustomTmpEnable", "active", NULL, "CustomTmpDir", "sensitive"},
     {"PresetCategory", "active-id", "new", "PresetCategoryName", "visible"},
     {"PresetCategory", "active-id", "new", "PresetCategoryEntryLabel", "visible"},
-    {"DiskFreeCheck", "active", NULL, "DiskFreeLimitGB", "sensitive"},
-    {"LimitMaxDuration", "active", NULL, "MaxTitleDuration", "sensitive"},
-    {"SendFileTo", "active", NULL, "SendFileToTarget", "sensitive"}
 };
 
 void
@@ -492,8 +487,8 @@ ghb_bind_dependencies (void)
     }
 }
 
-static void
-application_quit (void)
+void
+ghb_application_quit (void)
 {
     ghb_hb_cleanup(FALSE);
     prune_logs();
@@ -511,7 +506,7 @@ quit_action_cb (GSimpleAction *action, GVariant *param, gpointer data)
     }
     else
     {
-        application_quit();
+        ghb_application_quit();
     }
 }
 
@@ -741,7 +736,7 @@ get_extension(signal_user_data_t *ud, GhbValue *settings)
     mux = ghb_lookup_container_by_name(mux_id);
 
     if ((mux->format & HB_MUX_MASK_MP4) &&
-        ghb_dict_get_bool(ud->prefs, "UseM4v"))
+        ghb_prefs_get_boolean(ud->prefs, "use-m4v"))
     {
         return "m4v";
     }
@@ -751,11 +746,9 @@ get_extension(signal_user_data_t *ud, GhbValue *settings)
 gboolean
 ghb_check_name_template (signal_user_data_t *ud, const char *str)
 {
-    if (ghb_dict_get_bool(ud->prefs, "auto_name"))
+    if (ghb_prefs_get_boolean(ud->prefs, "auto-name"))
     {
-        const gchar *template;
-
-        template = ghb_dict_get_string(ud->prefs, "auto_name_template");
+        g_autofree char *template = ghb_prefs_get_string(ud->prefs, "auto-name-template");
         if (strstr(template, str) != NULL)
             return TRUE;
     }
@@ -902,14 +895,14 @@ set_destination_settings(signal_user_data_t *ud, GhbValue *settings)
         ghb_dict_set_string(settings, "dest_file", filename);
         g_free(filename);
     }
-    ghb_dict_set(settings, "dest_dir", ghb_value_dup(
-                 ghb_dict_get_value(ud->prefs, "destination_dir")));
-    if (ghb_dict_get_bool(ud->prefs, "auto_name"))
+    g_autofree char *destdir = ghb_prefs_get_string_or(ud->prefs, "destination-dir",
+                                                       g_get_user_special_dir(G_USER_DIRECTORY_VIDEOS));
+    ghb_dict_set_string(settings, "dest_dir", destdir);
+    if (ghb_prefs_get_boolean(ud->prefs, "auto-name"))
     {
         GString *str = g_string_new("");
-        const gchar *p;
-
-        p = ghb_dict_get_string(ud->prefs, "auto_name_template");
+        char *name_template, *p;
+        name_template = p = ghb_prefs_get_string(ud->prefs, "auto-name-template");
         // {source-path} is only allowed as the first element of the
         // template since the path must come first in the filename
         if (p != NULL &&
@@ -1102,6 +1095,7 @@ set_destination_settings(signal_user_data_t *ud, GhbValue *settings)
         filename = g_string_free(str, FALSE);
         ghb_dict_set_string(settings, "dest_file", filename);
         g_free(filename);
+        g_free(name_template);
     }
 }
 
@@ -1502,11 +1496,11 @@ start_scan (signal_user_data_t *ud, const char *path, int title_id, int preview_
     gtk_widget_set_tooltip_text(widget, _("Stop Scan"));
     widget = ghb_builder_widget("sourcetoolmenubutton");
     gtk_widget_set_sensitive(widget, false);
-    gboolean limit_max_duration = ghb_dict_get_bool(ud->prefs, "LimitMaxDuration");
+    gboolean limit_max_duration = ghb_prefs_get_boolean(ud->prefs, "limit-max-duration");
     ghb_backend_scan(path, title_id, preview_count,
-            90000L * ghb_dict_get_int(ud->prefs, "MinTitleDuration"),
-            limit_max_duration ? 90000L * ghb_dict_get_int(ud->prefs, "MaxTitleDuration") : 0,
-            ghb_dict_get_bool(ud->prefs, "KeepDuplicateTitles"));
+            90000L * ghb_prefs_get_int(ud->prefs, "min-title-duration"),
+            limit_max_duration ? 90000L * ghb_prefs_get_int(ud->prefs, "max-title-duration") : 0,
+            ghb_prefs_get_boolean(ud->prefs, "keep-duplicate-titles"));
 }
 
 static void
@@ -1525,11 +1519,11 @@ start_scan_list (signal_user_data_t *ud, GListModel *files, int title_id, int pr
     gtk_widget_set_tooltip_text(widget, _("Stop Scan"));
     widget = ghb_builder_widget("sourcetoolmenubutton");
     gtk_widget_set_sensitive(widget, false);
-    gboolean limit_max_duration = ghb_dict_get_bool(ud->prefs, "LimitMaxDuration");
+    gboolean limit_max_duration = ghb_prefs_get_boolean(ud->prefs, "limit-max-duration");
     ghb_backend_scan_list(files, title_id, preview_count,
-            90000L * ghb_dict_get_int(ud->prefs, "MinTitleDuration"),
-            limit_max_duration ? 90000L * ghb_dict_get_int(ud->prefs, "MaxTitleDuration") : 0,
-            ghb_dict_get_bool(ud->prefs, "KeepDuplicateTitles"));
+            90000L * ghb_prefs_get_int(ud->prefs, "min-title-duration"),
+            limit_max_duration ? 90000L * ghb_prefs_get_int(ud->prefs, "max-title-duration") : 0,
+            ghb_prefs_get_boolean(ud->prefs, "keep-duplicate-titles"));
 }
 
 gboolean
@@ -1592,7 +1586,7 @@ ghb_do_scan_list (signal_user_data_t *ud, GListModel *files, int title_id, gbool
         show_scan_progress(ud);
         prune_logs();
 
-        preview_count = ghb_dict_get_int(ud->prefs, "preview_count");
+        preview_count = ghb_prefs_get_int(ud->prefs, "preview-count");
         start_scan_list(ud, files, title_id, preview_count);
     }
 }
@@ -1637,7 +1631,7 @@ ghb_do_scan (signal_user_data_t *ud, const char *filename, int title_id, gboolea
         path = ghb_get_scan_source();
         prune_logs();
 
-        preview_count = ghb_dict_get_int(ud->prefs, "preview_count");
+        preview_count = ghb_prefs_get_int(ud->prefs, "preview-count");
         start_scan(ud, path, title_id, preview_count);
     }
 }
@@ -1790,8 +1784,7 @@ source_dialog_start_scan (GtkFileChooser *chooser, int title_id)
     {
         // The recursive choice only exists in directory mode
         recursive = !g_strcmp0(gtk_file_chooser_get_choice(chooser, "recursive"), "true");
-        ghb_dict_set_bool(ud->prefs, "RecursiveFolderScan", recursive);
-        ghb_pref_save(ud->prefs, "RecursiveFolderScan");
+        ghb_prefs_set_boolean(ud->prefs, "recursive-folder-scan", recursive);
     }
     else if (has_drive)
     {
@@ -1843,8 +1836,7 @@ source_dialog_start_scan (GtkFileChooser *chooser, int title_id)
         // since the memory it references will be freed
         if (strcmp(sourcename, def_src) != 0)
         {
-            ghb_dict_set_string(ud->prefs, "default_source", def_src);
-            ghb_pref_save(ud->prefs, "default_source");
+            ghb_prefs_set_string(ud->prefs, "default-source", def_src);
             ghb_dvd_set_current(def_src, ud);
         }
         if (files)
@@ -1891,7 +1883,7 @@ do_source_dialog(gboolean dir, signal_user_data_t *ud)
         gtk_file_chooser_add_choice(chooser, "recursive",
                 _("Recursively scan directories"), NULL, NULL);
         gtk_file_chooser_set_choice(chooser, "recursive",
-                ghb_dict_get_bool(ud->prefs, "RecursiveFolderScan") ? "true" : "false");
+                ghb_prefs_get_boolean(ud->prefs, "recursive-folder-scan") ? "true" : "false");
     }
     else
     {
@@ -1963,8 +1955,7 @@ dvd_source_activate_cb(GSimpleAction *action, GVariant *param,
     filename = g_variant_get_string(param, NULL);
     if (strcmp(sourcename, filename) != 0)
     {
-        ghb_dict_set_string(ud->prefs, "default_source", filename);
-        ghb_pref_save(ud->prefs, "default_source");
+        ghb_prefs_set_string(ud->prefs, "default-source", filename);
         ghb_dvd_set_current(filename, ud);
     }
     ghb_do_scan(ud, filename, 0, TRUE);
@@ -2060,15 +2051,16 @@ destination_grab_cb(
 static void
 update_default_destination(signal_user_data_t *ud)
 {
-    const gchar *dest_dir, *def_dest;
+    const char *dest_dir;
+    g_autofree char *def_dest;
 
     dest_dir = ghb_dict_get_string(ud->settings, "dest_dir");
-    def_dest = ghb_dict_get_string(ud->prefs, "destination_dir");
+    def_dest = ghb_prefs_get_string_or(ud->prefs, "destination-dir",
+                                       g_get_user_special_dir(G_USER_DIRECTORY_VIDEOS));
     if (dest_dir != NULL && def_dest != NULL && dest_dir[0] != 0 &&
         strcmp(dest_dir, def_dest) != 0)
     {
-        ghb_dict_set_string(ud->prefs, "destination_dir", dest_dir);
-        ghb_pref_save(ud->prefs, "destination_dir");
+        ghb_prefs_set_string(ud->prefs, "destination-dir", dest_dir);
     }
 }
 
@@ -2166,7 +2158,7 @@ window_close_request_cb(GtkWidget *widget, gpointer data)
     }
     else
     {
-        application_quit();
+        ghb_application_quit();
         return FALSE;
     }
 }
@@ -2342,7 +2334,7 @@ mini_preview_update (gboolean has_preview, signal_user_data_t *ud)
 {
     GtkWidget *widget;
 
-    if (ghb_dict_get_bool(ud->prefs, "ShowMiniPreview") && has_preview)
+    if (ghb_prefs_get_boolean(ud->prefs, "show-mini-preview") && has_preview)
     {
         widget = ghb_builder_widget("summary_image");
         gtk_widget_hide(widget);
@@ -2914,7 +2906,7 @@ title_changed_cb (GtkWidget *widget, gpointer data)
 
     count = ghb_array_len(ud->settings_array);
     int idx = (titleindex >= 0 && titleindex < count) ? titleindex : 0;
-    if (ghb_dict_get_bool(ud->prefs, "SyncTitleSettings"))
+    if (ghb_prefs_get_boolean(ud->prefs, "sync-title-settings"))
     {
         GhbValue * preset   = ghb_settings_to_preset(ud->settings);
         GhbValue * settings = ghb_array_get(ud->settings_array, idx);
@@ -3342,7 +3334,7 @@ vquality_changed_cb (GtkWidget *widget, gpointer data)
     int direction;
 
     hb_video_quality_get_limits(vcodec, &min, &max, &min_step, &direction);
-    step = ghb_settings_combo_double(ud->prefs, "VideoQualityGranularity");
+    step = ghb_prefs_get_double(ud->prefs, "video-quality-granularity");
     if (step < min_step)
     {
         step = min_step;
@@ -3802,37 +3794,6 @@ generic_entry_changed_cb (GtkEntry *entry, gpointer data)
     }
 }
 
-gboolean prefs_require_restart = FALSE;
-
-G_MODULE_EXPORT void
-preferences_action_cb (GSimpleAction *action, GVariant *param, gpointer data)
-{
-    GtkWidget *dialog;
-
-    prefs_require_restart = FALSE;
-    dialog = ghb_builder_widget("prefs_dialog");
-    gtk_widget_set_visible(dialog, TRUE);
-}
-
-G_MODULE_EXPORT gboolean
-prefs_response_cb (GtkDialog *dialog, GdkEvent *event, gpointer data)
-{
-    ghb_prefs_store();
-    gtk_widget_set_visible(GTK_WIDGET(dialog), FALSE);
-
-    if (prefs_require_restart)
-    {
-        GtkWindow *hb_window = GTK_WINDOW(ghb_builder_widget("hb_window"));
-
-        // Toss up a warning dialog
-        ghb_question_dialog_run(hb_window, GHB_ACTION_NORMAL, _("_Quit"), NULL,
-                                _("Temp Directory Changed"),
-                                _("You must restart HandBrake now."));
-        application_quit();
-    }
-    return TRUE;
-}
-
 typedef struct
 {
     GtkMessageDialog *dlg;
@@ -3849,7 +3810,7 @@ quit_cb(countdown_t *cd)
     if (cd->timeout <= 0)
     {
         gtk_window_destroy(GTK_WINDOW(cd->dlg));
-        application_quit();
+        ghb_application_quit();
         return FALSE;
     }
     else
@@ -4152,7 +4113,7 @@ quit_dialog_response (GtkDialog *dialog, int response, gpointer data)
     gtk_window_destroy(GTK_WINDOW(dialog));
     if (response == 1)
     {
-        application_quit();
+        ghb_application_quit();
     }
 }
 static void
@@ -4187,7 +4148,7 @@ start_new_log(signal_user_data_t *ud, GhbValue *uiDict)
     now = localtime(&_now);
     destname = ghb_dict_get_string(uiDict, "destination");
     basename = g_path_get_basename(destname);
-    if (ghb_dict_get_bool(ud->prefs, "EncodeLogLocation"))
+    if (ghb_prefs_get_boolean(ud->prefs, "encode-log-location"))
     {
         dest_dir = g_path_get_dirname (destname);
     }
@@ -4262,8 +4223,8 @@ prune_logs (void)
     signal_user_data_t *ud = ghb_ud();
 
     // Only prune logs stored in the default config dir location
-    days = ghb_settings_combo_int(ud->prefs, "LogLongevity");
-    if (days > 365)
+    days = ghb_prefs_get_enum(ud->prefs, "log-longevity");
+    if (days < 1 || days > 365)
         return;
 
     dest_dir = ghb_get_user_config_dir("EncodeLogs");
@@ -4488,8 +4449,8 @@ searching_status_string(signal_user_data_t *ud, ghb_instance_status_t *status)
 static void
 send_to_external_app(gint index, signal_user_data_t * ud)
 {
-    gboolean send_file_to = ghb_dict_get_bool(ud->prefs, "SendFileTo");
-    const gchar * send_file_to_target = ghb_dict_get_string(ud->prefs, "SendFileToTarget");
+    gboolean send_file_to = ghb_prefs_get_boolean(ud->prefs, "send-file-to");
+    gchar * send_file_to_target = ghb_prefs_get_string(ud->prefs, "send-file-to-target");
     if (send_file_to && send_file_to_target != NULL && send_file_to_target[0] != '\0')
     {
         GhbValue *queueDict, *jobDict, *destDict;
@@ -4531,6 +4492,7 @@ send_to_external_app(gint index, signal_user_data_t * ud)
             g_error_free(error);
         }
         
+        g_free(send_file_to_target);
         g_free(command_str);
         g_free(file);
     }
@@ -4565,7 +4527,7 @@ ghb_backend_events(signal_user_data_t *ud)
         status.queue.state == GHB_STATE_IDLE)
     {
         static gboolean prev_dvdnav;
-        gboolean dvdnav = ghb_dict_get_bool(ud->prefs, "use_dvdnav");
+        gboolean dvdnav = ghb_prefs_get_boolean(ud->prefs, "use-dvdnav");
         if (dvdnav != prev_dvdnav)
         {
             hb_dvd_set_dvdnav(dvdnav);
@@ -4739,7 +4701,7 @@ ghb_backend_events(signal_user_data_t *ud)
         if (ud->job_activity_log)
             g_io_channel_unref(ud->job_activity_log);
         ud->job_activity_log = NULL;
-        if (ghb_dict_get_bool(ud->prefs, "RemoveFinishedJobs") &&
+        if (ghb_prefs_get_boolean(ud->prefs, "remove-finished-jobs") &&
             status.queue.error == GHB_ERROR_NONE)
         {
             ghb_queue_remove_row_at_index(index);
@@ -5055,22 +5017,17 @@ hbfd_action_cb(GSimpleAction *action, GVariant *value, signal_user_data_t *ud)
     gboolean state = g_variant_get_boolean(value);
 
     g_simple_action_set_state(action, value);
-    ghb_dict_set(ud->prefs, "hbfd", ghb_boolean_value(state));
+    ghb_prefs_set_boolean(ud->prefs, "hbfd", state);
     ghb_hbfd(ud, state);
-    ghb_pref_save(ud->prefs, "hbfd");
 }
 
 G_MODULE_EXPORT void
-activity_font_changed_cb(GtkWidget *widget, gpointer data)
+activity_font_changed_cb(GSettings *settings, const char *name, GhbApplication *app)
 {
     signal_user_data_t *ud = ghb_ud();
 
-    ghb_widget_to_setting(ud->prefs, widget);
-    const gchar *name = ghb_get_setting_key(widget);
-    ghb_pref_set(ud->prefs, name);
-
-    int size = ghb_dict_get_int(ud->prefs, "ActivityFontSize");
-    const char *font = ghb_dict_get_string(ud->prefs, "ActivityFontFamily");
+    int size = ghb_prefs_get_int(ud->prefs, "activity-font-size");
+    g_autofree char *font = ghb_prefs_get_string(ud->prefs, "activity-font-family");
 
     const gchar *css_template =
         "                                   \n\
@@ -5093,123 +5050,27 @@ activity_font_changed_cb(GtkWidget *widget, gpointer data)
     g_free(css);
 }
 
-// Changes the setting for the current session
-// and also saves it for future sessions
 G_MODULE_EXPORT void
-when_complete_changed_cb (GtkWidget *widget, gpointer data)
+log_level_changed_cb (GSettings *settings, const char *name, GhbApplication *app)
 {
     signal_user_data_t *ud = ghb_ud();
-    GhbValue * value = ghb_widget_value(widget);
-    ghb_set_queue_done_action(gtk_combo_box_get_active(GTK_COMBO_BOX(widget)));
-    ghb_ui_update("MainWhenComplete", value);
-    ghb_ui_update("QueueWhenComplete", value);
-    ghb_value_free(&value);
-
-    ghb_widget_to_setting (ud->prefs, widget);
-
-    const gchar *name = ghb_get_setting_key(widget);
-    ghb_pref_set(ud->prefs, name);
-    ghb_prefs_store();
-}
-
-// Only changes the setting for the current session
-G_MODULE_EXPORT void
-temp_when_complete_changed_cb (GtkWidget *widget, gpointer data)
-{
-    GhbValue * value = ghb_widget_value(widget);
-    ghb_set_queue_done_action(gtk_combo_box_get_active(GTK_COMBO_BOX(widget)));
-    ghb_ui_update("MainWhenComplete", value);
-    ghb_ui_update("QueueWhenComplete", value);
-    ghb_value_free(&value);
-}
-
-G_MODULE_EXPORT void
-pref_changed_cb (GtkWidget *widget, gpointer data)
-{
-    signal_user_data_t *ud = ghb_ud();
-    ghb_widget_to_setting (ud->prefs, widget);
-
-    const gchar *name = ghb_get_setting_key(widget);
-    ghb_pref_set(ud->prefs, name);
-}
-
-G_MODULE_EXPORT void
-excluded_extensions_update (GObject *gobject, GParamSpec *pspec,
-                            gpointer user_data)
-{
-    GtkWidget *widget = ghb_builder_widget("ExcludedFileExtensions");
-    signal_user_data_t *ud = ghb_ud();
-
-    ghb_widget_to_setting(ud->prefs, widget);
-
-    const gchar *name = ghb_get_setting_key(widget);
-    ghb_pref_set(ud->prefs, name);
-}
-
-G_MODULE_EXPORT void
-log_level_changed_cb (GtkWidget *widget, gpointer data)
-{
-    signal_user_data_t *ud = ghb_ud();
-    pref_changed_cb(widget, ud);
-    int level = ghb_dict_get_int(ud->prefs, "LoggingLevel");
+    int level = ghb_prefs_get_int(ud->prefs, "logging-level");
     ghb_log_level_set(level);
 }
 
 G_MODULE_EXPORT void
-use_m4v_changed_cb (GtkWidget *widget, gpointer data)
+use_m4v_changed_cb (GSettings *settings, const char *name, GhbApplication *app)
 {
     signal_user_data_t *ud = ghb_ud();
     ghb_log_func();
-    ghb_widget_to_setting (ud->prefs, widget);
-    const gchar *name = ghb_get_setting_key(widget);
-    ghb_pref_set(ud->prefs, name);
     ghb_update_destination_extension(ud);
 }
 
 G_MODULE_EXPORT void
-tmp_dir_enable_changed_cb (GtkWidget *widget, gpointer data)
-{
-    pref_changed_cb(widget, ghb_ud());
-    prefs_require_restart = TRUE;
-}
-
-G_MODULE_EXPORT void
-temp_dir_changed_cb (GhbFileButton *dest_chooser, GParamSpec *pspec, gpointer data)
-{
-    char * orig_tmp_dir = NULL;
-    const char * tmp_dir;
-    signal_user_data_t *ud = ghb_ud();
-
-    tmp_dir = ghb_dict_get_string(ud->prefs, "CustomTmpDir");
-    if (tmp_dir != NULL)
-    {
-        orig_tmp_dir = g_strdup(tmp_dir);
-    }
-    ghb_widget_to_setting(ud->prefs, GTK_WIDGET(dest_chooser));
-
-    tmp_dir = ghb_dict_get_string(ud->prefs, "CustomTmpDir");
-    if (tmp_dir == NULL)
-    {
-        tmp_dir = "";
-    }
-    if (orig_tmp_dir == NULL ||
-        strcmp(orig_tmp_dir, tmp_dir))
-    {
-        ghb_pref_set(ud->prefs, "CustomTmpDir");
-        prefs_require_restart = TRUE;
-    }
-}
-
-G_MODULE_EXPORT void
-vqual_granularity_changed_cb(GtkWidget *widget, gpointer data)
+vqual_granularity_changed_cb(GSettings *settings, const char *name, GhbApplication *app)
 {
     ghb_log_func();
     signal_user_data_t *ud = ghb_ud();
-
-    ghb_widget_to_setting (ud->prefs, widget);
-
-    const gchar *name = ghb_get_setting_key(widget);
-    ghb_pref_set(ud->prefs, name);
 
     float val, vqmin, vqmax, step, page;
     int inverted, digits;
@@ -5221,44 +5082,23 @@ vqual_granularity_changed_cb(GtkWidget *widget, gpointer data)
 }
 
 G_MODULE_EXPORT void
-tweaks_changed_cb (GtkWidget *widget, gpointer data)
+show_preview_changed_cb (GSettings *settings, const char *name, GhbApplication *app)
 {
     ghb_log_func();
     signal_user_data_t *ud = ghb_ud();
-    ghb_widget_to_setting (ud->prefs, widget);
-    const gchar *name = ghb_get_setting_key(widget);
-    ghb_pref_set(ud->prefs, name);
-}
-
-G_MODULE_EXPORT void
-show_preview_changed_cb (GtkWidget *widget, gpointer data)
-{
-    ghb_log_func();
-    signal_user_data_t *ud = ghb_ud();
-
-    ghb_widget_to_setting (ud->prefs, widget);
-    const gchar *name = ghb_get_setting_key(widget);
-    ghb_pref_set(ud->prefs, name);
     mini_preview_update(TRUE, ud);
 }
 
 G_MODULE_EXPORT void
-hbfd_feature_changed_cb (GtkWidget *widget, gpointer data)
+hbfd_feature_changed_cb (GSettings *settings, const char *name, GhbApplication *app)
 {
     signal_user_data_t *ud = ghb_ud();
 
-    ghb_widget_to_setting (ud->prefs, widget);
-    const gchar *name = ghb_get_setting_key(widget);
-    ghb_pref_set(ud->prefs, name);
-
-    gboolean hbfd = ghb_dict_get_bool(ud->prefs, "hbfd_feature");
+    gboolean hbfd = ghb_prefs_get_boolean(ud->prefs, "hbfd-feature");
     GMenu *view_menu = G_MENU(ghb_builder_object("view-menu"));
     GMenuModel *hbfd_menu = G_MENU_MODEL(ghb_builder_object("hbfd-section"));
     if (hbfd)
     {
-        const GhbValue *val;
-        val = ghb_dict_get_value(ud->prefs, "hbfd");
-        ghb_ui_settings_update(ud, ud->prefs, "hbfd", val);
         GMenuItem *hbfd_item = g_menu_item_new_from_model(hbfd_menu, 0);
         g_menu_prepend_item(view_menu, hbfd_item);
     }
@@ -5414,13 +5254,13 @@ handle_media_change(const gchar *device, gboolean insert, signal_user_data_t *ud
         {
             g_thread_new("Cache Volume Names",
                     (GThreadFunc)ghb_cache_volnames, ud);
-            if (ghb_dict_get_bool(ud->prefs, "AutoScan") &&
+            if (ghb_prefs_get_boolean(ud->prefs, "auto-scan") &&
                 ud->current_dvd_device != NULL &&
                 strcmp(device, ud->current_dvd_device) == 0)
             {
                 show_scan_progress(ud);
                 gint preview_count;
-                preview_count = ghb_dict_get_int(ud->prefs, "preview_count");
+                preview_count = ghb_prefs_get_int(ud->prefs, "preview-count");
                 ghb_set_scan_source(device);
                 start_scan(ud, device, 0, preview_count);
             }
@@ -5520,11 +5360,11 @@ drive_changed_cb(GVolumeMonitor *gvm, GDrive *gd, signal_user_data_t *ud)
     }
     if (g_drive_has_media(gd))
     {
-        if (ghb_dict_get_bool(ud->prefs, "AutoScan"))
+        if (ghb_prefs_get_boolean(ud->prefs, "auto-scan"))
         {
             show_scan_progress(ud);
             gint preview_count;
-            preview_count = ghb_dict_get_int(ud->prefs, "preview_count");
+            preview_count = ghb_prefs_get_int(ud->prefs, "preview-count");
             ghb_set_scan_source(device);
             start_scan(ud, device, 0, preview_count);
         }
@@ -5538,19 +5378,6 @@ drive_changed_cb(GVolumeMonitor *gvm, GDrive *gd, signal_user_data_t *ud)
     }
 }
 #endif
-
-G_MODULE_EXPORT void
-easter_egg_multi_cb (GtkGesture *gest, int n_press, double x, double y, gpointer data)
-{
-    if (n_press == 3)
-    {
-        GtkWidget *widget;
-        widget = ghb_builder_widget("allow_tweaks");
-        gtk_widget_set_visible(widget, !gtk_widget_get_visible(widget));
-        widget = ghb_builder_widget("hbfd_feature");
-        gtk_widget_set_visible(widget, !gtk_widget_get_visible(widget));
-    }
-}
 
 G_MODULE_EXPORT gchar*
 format_deblock_cb(GtkScale *scale, gdouble val, signal_user_data_t *ud)
@@ -5603,17 +5430,14 @@ hb_window_save_size_cb (GtkWidget *widget, GParamSpec *spec, gpointer data)
     if (gtk_widget_get_visible(widget))
     {
         gint w, h, ww, wh;
-        w = ghb_dict_get_int(ud->prefs, "window_width");
-        h = ghb_dict_get_int(ud->prefs, "window_height");
+        w = ghb_prefs_get_int(ud->prefs, "window-width");
+        h = ghb_prefs_get_int(ud->prefs, "window-height");
         gtk_window_get_default_size(GTK_WINDOW(widget), &ww, &wh);
 
         if ( w != ww || h != wh )
         {
-            ghb_dict_set_int(ud->prefs, "window_width", ww);
-            ghb_dict_set_int(ud->prefs, "window_height", wh);
-            ghb_pref_set(ud->prefs, "window_width");
-            ghb_pref_set(ud->prefs, "window_height");
-            ghb_prefs_store();
+            ghb_prefs_set_int(ud->prefs, "window-width", ww);
+            ghb_prefs_set_int(ud->prefs, "window-height", wh);
         }
     }
 }

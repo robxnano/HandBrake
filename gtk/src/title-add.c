@@ -242,7 +242,7 @@ ghb_add_title_to_queue (signal_user_data_t *ud, GhbValue *settings, gint batch)
     // Copy current prefs into settings
     // The job should run with the preferences that existed
     // when the job was added to the queue.
-    ghb_dict_set(uiDict, "Preferences", ghb_value_dup(ud->prefs));
+    //ghb_dict_set(uiDict, "Preferences", ghb_prefs_get_dict(ud->prefs));
 
     // Make a copy of current settings to be used for the new job
     ghb_dict_set_int(uiDict, "job_status", GHB_QUEUE_PENDING);
@@ -709,7 +709,7 @@ title_add_multiple_action_cb (GSimpleAction *action, GVariant *param,
     // Clear title list
     ghb_list_box_remove_all(list);
 
-    if (ghb_dict_get_bool(ud->prefs, "SyncTitleSettings"))
+    if (ghb_prefs_get_boolean(ud->prefs, "sync-title-settings"))
     {
         preset = ghb_settings_to_preset(ud->settings);
     }
@@ -799,7 +799,7 @@ title_add_all_action_cb (GSimpleAction *action, GVariant *param,
     gint count, ii;
     GhbValue * preset = NULL;
 
-    if (ghb_dict_get_bool(ud->prefs, "SyncTitleSettings"))
+    if (ghb_prefs_get_boolean(ud->prefs, "sync-title-settings"))
     {
         preset = ghb_settings_to_preset(ud->settings);
     }

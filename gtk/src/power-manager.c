@@ -31,13 +31,7 @@
 #define UPOWER_INTERFACE "org.freedesktop.UPower"
 #define DEVICE_INTERFACE "org.freedesktop.UPower.Device"
 
-static const char *battery_widgets[] = {
-    "pause_encoding_label",
-    "PauseEncodingOnBatteryPower",
-    "PauseEncodingOnLowBattery",
-    NULL,
-};
-
+static gboolean has_battery = FALSE;
 static GDBusProxy *upower_proxy;
 static GDBusProxy *battery_proxy;
 static GhbPowerState power_state;
@@ -81,10 +75,10 @@ battery_level_cb (GDBusProxy *proxy, GVariant *changed_properties,
     GVariantIter iter;
     int low_battery_level = 0;
 
-    if (!ghb_dict_get_bool(ud->prefs, "PauseEncodingOnLowBattery"))
+    if (!ghb_prefs_get_boolean(ud->prefs, "pause-encoding-on-low-battery"))
         return;
 
-    low_battery_level = ghb_dict_get_int(ud->prefs, "LowBatteryLevel");
+    low_battery_level = ghb_prefs_get_int(ud->prefs, "low-battery-level");
 
     g_variant_iter_init(&iter, changed_properties);
     while (g_variant_iter_next(&iter, "{&sv}", &prop_name, &var))
@@ -140,7 +134,7 @@ battery_proxy_new_cb (GObject *source, GAsyncResult *result,
         {
             g_signal_connect(proxy, "g-properties-changed",
                          G_CALLBACK(battery_level_cb), ud);
-            show_power_widgets(battery_widgets);
+            has_battery = TRUE;
             battery_proxy = proxy;
         }
         else
@@ -174,7 +168,7 @@ upower_status_cb (GDBusProxy *proxy, GVariant *changed_properties,
     gboolean on_battery;
     int queue_state;
 
-    if (!ghb_dict_get_bool(ud->prefs, "PauseEncodingOnBatteryPower") ||
+    if (!ghb_prefs_get_boolean(ud->prefs, "pause-encoding-on-battery-power") ||
         !g_variant_lookup(changed_properties, "OnBattery", "b", &on_battery))
         return;
 
@@ -237,7 +231,7 @@ power_save_cb (GPowerProfileMonitor *monitor, GParamSpec *pspec,
 {
     gboolean power_save;
 
-    if (!ghb_dict_get_bool(ud->prefs, "PauseEncodingOnPowerSave"))
+    if (!ghb_prefs_get_boolean(ud->prefs, "pause-encoding-on-power-save"))
         return;
 
     int queue_state = ghb_get_queue_state();
@@ -336,4 +330,10 @@ ghb_power_manager_dispose (signal_user_data_t *ud)
         g_clear_object(&power_monitor);
     }
 #endif
+}
+
+gboolean
+ghb_power_manager_has_battery (void)
+{
+    return has_battery;
 }

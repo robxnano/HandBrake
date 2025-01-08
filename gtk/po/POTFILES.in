@@ -7,6 +7,7 @@ src/gui/button.ui
 src/gui/chapter-row.ui
 src/gui/file-button.ui
 src/gui/queue-row.ui
+src/gui/settings-dialog.ui
 
 # Source code
 src/audiohandler.c
@@ -24,6 +25,7 @@ src/videohandler.c
 src/gui/chapter-row.c
 src/gui/file-button.c
 src/gui/queue-row.c
+src/gui/settings-dialog.c
 
 # Other files
 data/fr.handbrake.ghb.desktop.in
