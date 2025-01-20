@@ -13,7 +13,6 @@ ghb_src = files(
   'jobdict.c',
   'main.c',
   'notifications.c',
-  'power-manager.c',
   'presets.c',
   'preview.c',
   'queuehandler.c',
@@ -31,6 +30,7 @@ ghb_src = files(
   'gui/prefs-dialog.c',
   'gui/queue-row.c',
   'gui/string-list.c',
+  'model/power-monitor.c',
   'model/prefs.c',
 )
 

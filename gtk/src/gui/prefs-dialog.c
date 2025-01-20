@@ -7,7 +7,7 @@
 #include "callbacks.h"
 #include "gui/string-list.h"
 #include "gui/file-button.h"
-#include "power-manager.h"
+#include "model/power-monitor.h"
 
 struct _GhbPrefsDialog
 {
@@ -278,7 +278,7 @@ ghb_prefs_dialog_new (GhbPrefs *prefs)
     g_signal_connect(gsettings, "changed::custom-tmp-enable", G_CALLBACK(custom_tmp_changed_cb), dialog);
     g_signal_connect(gsettings, "changed::custom-tmp-dir", G_CALLBACK(custom_tmp_changed_cb), dialog);
 
-    if (ghb_power_manager_has_battery())
+    if (ghb_power_monitor_has_battery(GHB_POWER_MONITOR_DEFAULT))
     {
         gtk_widget_set_visible(GTK_WIDGET(dialog->pause_encoding_on_low_battery), TRUE);
         gtk_widget_set_visible(GTK_WIDGET(dialog->pause_encoding_on_battery_power), TRUE);
