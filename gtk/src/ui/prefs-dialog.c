@@ -5,7 +5,7 @@
 
 #include "application.h"
 #include "callbacks.h"
-#include "power-manager.h"
+#include "model/power-monitor.h"
 #include "ui/file-button.h"
 #include "ui/string-list.h"
 
@@ -334,7 +334,7 @@ ghb_prefs_dialog_new (GhbPrefs *prefs)
     g_signal_connect(gsettings, "changed::custom-tmp-dir", G_CALLBACK(restart_required_cb), dialog);
     g_signal_connect(gsettings, "changed::ui-language", G_CALLBACK(restart_required_cb), dialog);
 
-    if (ghb_power_manager_has_battery())
+    if (ghb_power_monitor_has_battery(GHB_POWER_MONITOR_DEFAULT))
     {
         gtk_widget_set_visible(GTK_WIDGET(dialog->pause_encoding_on_low_battery), TRUE);
         gtk_widget_set_visible(GTK_WIDGET(dialog->pause_encoding_on_battery_power), TRUE);

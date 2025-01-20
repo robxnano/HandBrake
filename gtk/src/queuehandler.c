@@ -27,7 +27,7 @@
 #include "hb-dvd.h"
 #include "jobdict.h"
 #include "notifications.h"
-#include "power-manager.h"
+#include "model/power-monitor.h"
 #include "presets.h"
 #include "subtitlehandler.h"
 #include "titledict.h"
@@ -2430,7 +2430,7 @@ queue_start_action_cb (GSimpleAction *action, GVariant *param,
     gint status;
     gint state;
 
-    ghb_power_manager_reset();
+    ghb_power_monitor_reset(GHB_POWER_MONITOR_DEFAULT);
     state = ghb_get_queue_state();
     if (state & (GHB_STATE_WORKING | GHB_STATE_SEARCHING |
                  GHB_STATE_SCANNING | GHB_STATE_MUXING))
@@ -2474,7 +2474,7 @@ queue_start_action_cb (GSimpleAction *action, GVariant *param,
 G_MODULE_EXPORT void
 queue_pause_action_cb (GSimpleAction *action, GVariant *param, gpointer data)
 {
-    ghb_power_manager_reset();
+    ghb_power_monitor_reset(GHB_POWER_MONITOR_DEFAULT);
     ghb_pause_resume_queue();
 }
 

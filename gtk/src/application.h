@@ -6,11 +6,14 @@
 #include "common.h"
 #include "settings.h"
 #include "model/prefs.h"
+#include "model/power-monitor.h"
 
 G_BEGIN_DECLS
 
 #define GHB_TYPE_APPLICATION          (ghb_application_get_type())
 #define GHB_APPLICATION_DEFAULT       (GHB_APPLICATION(g_application_get_default()))
+#define GHB_PREFS_DEFAULT             (ghb_application_get_prefs(GHB_APPLICATION_DEFAULT))
+#define GHB_POWER_MONITOR_DEFAULT     (ghb_application_get_power_monitor(GHB_APPLICATION_DEFAULT))
 #define GHB_APPLICATION_ACTION(name)  (G_SIMPLE_ACTION(g_action_map_lookup_action \
     (G_ACTION_MAP(g_application_get_default()), (name))))
 
@@ -22,6 +25,7 @@ GhbApplication *ghb_application_new(const char *exe_name);
 
 const char *ghb_application_get_app_dir(GhbApplication *self);
 GhbPrefs *ghb_application_get_prefs(GhbApplication *self);
+GhbPowerMonitor *ghb_application_get_power_monitor(GhbApplication *self);
 
 signal_user_data_t *ghb_ud (void);
 int ghb_get_cancel_status(void);

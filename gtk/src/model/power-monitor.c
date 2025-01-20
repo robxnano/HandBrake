@@ -1,4 +1,4 @@
-/* notifications.c
+/* power-monitor.c
  *
  * Copyright (C) 2023-2025 HandBrake Team
  *
@@ -18,7 +18,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
-#include "power-manager.h"
+#include "model/power-monitor.h"
 
 #include "application.h"
 #include "callbacks.h"
@@ -31,42 +31,43 @@
 #define UPOWER_INTERFACE "org.freedesktop.UPower"
 #define DEVICE_INTERFACE "org.freedesktop.UPower.Device"
 
-static gboolean has_battery = FALSE;
-static GDBusProxy *upower_proxy;
-static GDBusProxy *battery_proxy;
-static GhbPowerState power_state;
+struct _GhbPowerMonitor
+{
+    GObject parent_instance;
 
-/* We want to ensure that the encode is only paused when the battery
- * level first drops from normal to low, so the user can resume encoding
- * without it being paused again. So this variable tracks the previous
- * battery level, and if it was low already, we don't do anything. */
-static int prev_battery_level;
-
+    GhbPrefs *prefs;
+    GDBusProxy *upower_proxy;
+    GDBusProxy *battery_proxy;
 #if GLIB_CHECK_VERSION(2, 70, 0)
-static const char *power_save_widgets[] = {
-    "pause_encoding_label",
-    "PauseEncodingOnPowerSave",
-    NULL,
-};
-static GPowerProfileMonitor *power_monitor;
+    GPowerProfileMonitor *profile_monitor;
 #endif
 
-static void
-show_power_widgets (const char *widgets[])
-{
-    GtkWidget *widget;
+    /* We want to ensure that the encode is only paused when the battery
+     * level first drops from normal to low, so the user can resume encoding
+     * without it being paused again. So this variable tracks the previous
+     * battery level, and if it was low already, we don't do anything. */
+    int prev_battery_level;
+    GhbPowerState power_state;
+    gboolean has_battery;
+};
 
-    for (int i = 0; widgets[i] != NULL; i++)
-    {
-        widget = ghb_builder_widget(widgets[i]);
-        if (widget)
-            gtk_widget_set_visible(widget, TRUE);
-    }
+G_DEFINE_TYPE (GhbPowerMonitor, ghb_power_monitor, G_TYPE_OBJECT)
+
+static void ghb_power_monitor_dispose(GObject *object);
+static void ghb_power_monitor_finalize(GObject *object);
+
+static void
+ghb_power_monitor_class_init (GhbPowerMonitorClass *class_)
+{
+    GObjectClass *object_class = G_OBJECT_CLASS(class_);
+
+    object_class->finalize = ghb_power_monitor_finalize;
+    object_class->dispose = ghb_power_monitor_dispose;
 }
 
 static void
 battery_level_cb (GDBusProxy *proxy, GVariant *changed_properties,
-                  GStrv invalidated_properties, signal_user_data_t *ud)
+                  GStrv invalidated_properties, GhbPowerMonitor *self)
 {
     int battery_level = -1;
     const char *prop_name;
@@ -75,10 +76,10 @@ battery_level_cb (GDBusProxy *proxy, GVariant *changed_properties,
     GVariantIter iter;
     int low_battery_level = 0;
 
-    if (!ghb_prefs_get_boolean(ud->prefs, "pause-encoding-on-low-battery"))
+    if (!ghb_prefs_get_boolean(self->prefs, "pause-encoding-on-low-battery"))
         return;
 
-    low_battery_level = ghb_prefs_get_int(ud->prefs, "low-battery-level");
+    low_battery_level = ghb_prefs_get_int(self->prefs, "low-battery-level");
 
     g_variant_iter_init(&iter, changed_properties);
     while (g_variant_iter_next(&iter, "{&sv}", &prop_name, &var))
@@ -94,18 +95,18 @@ battery_level_cb (GDBusProxy *proxy, GVariant *changed_properties,
     queue_state = ghb_get_queue_state();
 
     if (battery_level <= low_battery_level
-        && prev_battery_level > low_battery_level
+        && self->prev_battery_level > low_battery_level
         && (queue_state & GHB_STATE_WORKING)
         && !(queue_state & GHB_STATE_PAUSED))
     {
-        power_state = GHB_POWER_PAUSED_LOW_BATTERY;
+        self->power_state = GHB_POWER_PAUSED_LOW_BATTERY;
         ghb_log("Battery level %d%%: pausing encode", battery_level);
-        ghb_send_notification(GHB_NOTIFY_PAUSED_LOW_BATTERY, 0, ud);
+        ghb_send_notification(GHB_NOTIFY_PAUSED_LOW_BATTERY, 0, ghb_ud());
         ghb_pause_queue();
     }
     else if (battery_level > low_battery_level
-             && prev_battery_level <= low_battery_level
-             && (power_state == GHB_POWER_PAUSED_LOW_BATTERY))
+             && self->prev_battery_level <= low_battery_level
+             && (self->power_state == GHB_POWER_PAUSED_LOW_BATTERY))
     {
         if (queue_state & GHB_STATE_PAUSED)
         {
@@ -113,14 +114,14 @@ battery_level_cb (GDBusProxy *proxy, GVariant *changed_properties,
             ghb_log("Battery level %d%%: resuming encode", battery_level);
             ghb_withdraw_notification(GHB_NOTIFY_PAUSED_LOW_BATTERY);
         }
-        power_state = GHB_POWER_OK;
+        self->power_state = GHB_POWER_OK;
     }
-    prev_battery_level = battery_level;
+    self->prev_battery_level = battery_level;
 }
 
 static void
 battery_proxy_new_cb (GObject *source, GAsyncResult *result,
-                      signal_user_data_t *ud)
+                      GhbPowerMonitor *self)
 {
     GDBusProxy *proxy;
     GVariant *is_present;
@@ -133,15 +134,15 @@ battery_proxy_new_cb (GObject *source, GAsyncResult *result,
         if (g_variant_get_boolean(is_present))
         {
             g_signal_connect(proxy, "g-properties-changed",
-                         G_CALLBACK(battery_level_cb), ud);
-            has_battery = TRUE;
-            battery_proxy = proxy;
+                         G_CALLBACK(battery_level_cb), self);
+            self->has_battery = TRUE;
+            self->battery_proxy = proxy;
         }
         else
         {
             g_debug("No battery present. Disconnecting UPower proxy.");
             g_clear_object(&proxy);
-            g_clear_object(&upower_proxy);
+            g_clear_object(&self->upower_proxy);
         }
         g_variant_unref(is_present);
     }
@@ -149,26 +150,26 @@ battery_proxy_new_cb (GObject *source, GAsyncResult *result,
     {
         g_debug("Could not get DisplayDevice proxy: %s", error->message);
         g_error_free(error);
-        g_clear_object(&upower_proxy);
+        g_clear_object(&self->upower_proxy);
     }
 }
 
 static void
-battery_proxy_new_async (signal_user_data_t *ud)
+battery_proxy_new_async (GhbPowerMonitor *self)
 {
     g_dbus_proxy_new_for_bus(G_BUS_TYPE_SYSTEM, G_DBUS_PROXY_FLAGS_NONE, NULL,
                              UPOWER_PATH, DEVICE_OBJECT, DEVICE_INTERFACE, NULL,
-                             (GAsyncReadyCallback) battery_proxy_new_cb, ud);
+                             (GAsyncReadyCallback) battery_proxy_new_cb, self);
 }
 
 static void
 upower_status_cb (GDBusProxy *proxy, GVariant *changed_properties,
-                  GStrv invalidated_properties, signal_user_data_t *ud)
+                  GStrv invalidated_properties, GhbPowerMonitor *self)
 {
     gboolean on_battery;
     int queue_state;
 
-    if (!ghb_prefs_get_boolean(ud->prefs, "pause-encoding-on-battery-power") ||
+    if (!ghb_prefs_get_boolean(self->prefs, "pause-encoding-on-battery-power") ||
         !g_variant_lookup(changed_properties, "OnBattery", "b", &on_battery))
         return;
 
@@ -177,12 +178,12 @@ upower_status_cb (GDBusProxy *proxy, GVariant *changed_properties,
     if (on_battery && (queue_state & GHB_STATE_WORKING)
                    && !(queue_state & GHB_STATE_PAUSED))
     {
-        power_state = GHB_POWER_PAUSED_ON_BATTERY;
+        self->power_state = GHB_POWER_PAUSED_ON_BATTERY;
         ghb_log("Charger disconnected: pausing encode");
-        ghb_send_notification(GHB_NOTIFY_PAUSED_ON_BATTERY, 0, ud);
+        ghb_send_notification(GHB_NOTIFY_PAUSED_ON_BATTERY, 0, ghb_ud());
         ghb_pause_queue();
     }
-    else if (!on_battery && (power_state == GHB_POWER_PAUSED_ON_BATTERY))
+    else if (!on_battery && (self->power_state == GHB_POWER_PAUSED_ON_BATTERY))
     {
         if (queue_state & GHB_STATE_PAUSED)
         {
@@ -190,13 +191,13 @@ upower_status_cb (GDBusProxy *proxy, GVariant *changed_properties,
             ghb_log("Charger connected: resuming encode");
             ghb_withdraw_notification(GHB_NOTIFY_PAUSED_ON_BATTERY);
         }
-        power_state = GHB_POWER_OK;
+        self->power_state = GHB_POWER_OK;
     }
 }
 
 static void
 upower_proxy_new_cb (GObject *source, GAsyncResult *result,
-                     signal_user_data_t *ud)
+                     GhbPowerMonitor *self)
 {
     GDBusProxy *proxy;
     GError *error = NULL;
@@ -205,9 +206,9 @@ upower_proxy_new_cb (GObject *source, GAsyncResult *result,
     if (proxy != NULL)
     {
         g_signal_connect(proxy, "g-properties-changed",
-                         G_CALLBACK(upower_status_cb), ud);
-        upower_proxy = proxy;
-        battery_proxy_new_async(ud);
+                         G_CALLBACK(upower_status_cb), self);
+        self->upower_proxy = proxy;
+        battery_proxy_new_async(self);
     }
     else
     {
@@ -217,36 +218,33 @@ upower_proxy_new_cb (GObject *source, GAsyncResult *result,
 }
 
 static void
-upower_proxy_new_async (signal_user_data_t *ud)
+upower_proxy_new_async (GhbPowerMonitor *self)
 {
     g_dbus_proxy_new_for_bus(G_BUS_TYPE_SYSTEM, G_DBUS_PROXY_FLAGS_NONE, NULL,
                              UPOWER_PATH, UPOWER_OBJECT, UPOWER_INTERFACE, NULL,
-                             (GAsyncReadyCallback) upower_proxy_new_cb, ud);
+                             (GAsyncReadyCallback) upower_proxy_new_cb, self);
 }
 
 #if GLIB_CHECK_VERSION(2, 70, 0)
 static void
 power_save_cb (GPowerProfileMonitor *monitor, GParamSpec *pspec,
-               signal_user_data_t *ud)
+               GhbPowerMonitor *self)
 {
-    gboolean power_save;
-
-    if (!ghb_prefs_get_boolean(ud->prefs, "pause-encoding-on-power-save"))
+    if (!ghb_prefs_get_boolean(self->prefs, "pause-encoding-on-power-save"))
         return;
 
     int queue_state = ghb_get_queue_state();
-
-    g_object_get(monitor, "power-saver-enabled", &power_save, NULL);
+    gboolean power_save = g_power_profile_monitor_get_power_saver_enabled(monitor);
 
     if (power_save && (queue_state & GHB_STATE_WORKING)
                    && !(queue_state & GHB_STATE_PAUSED))
     {
-        power_state = GHB_POWER_PAUSED_POWER_SAVE;
+        self->power_state = GHB_POWER_PAUSED_POWER_SAVE;
         ghb_log("Power saver enabled: pausing encode");
         ghb_pause_queue();
-        ghb_send_notification(GHB_NOTIFY_PAUSED_POWER_SAVE, 0, ud);
+        ghb_send_notification(GHB_NOTIFY_PAUSED_POWER_SAVE, 0, ghb_ud());
     }
-    else if (!power_save && (power_state == GHB_POWER_PAUSED_POWER_SAVE))
+    else if (!power_save && (self->power_state == GHB_POWER_PAUSED_POWER_SAVE))
     {
         if (queue_state & GHB_STATE_PAUSED)
         {
@@ -254,22 +252,19 @@ power_save_cb (GPowerProfileMonitor *monitor, GParamSpec *pspec,
             ghb_log("Power saver disabled: resuming encode");
             ghb_withdraw_notification(GHB_NOTIFY_PAUSED_POWER_SAVE);
         }
-        power_state = GHB_POWER_OK;
+        self->power_state = GHB_POWER_OK;
     }
 }
 
 static GPowerProfileMonitor *
-power_monitor_new (signal_user_data_t *ud)
+power_profile_monitor_new (GhbPowerMonitor *self)
 {
-    GPowerProfileMonitor *monitor;
-
-    monitor = g_power_profile_monitor_dup_default();
+    GPowerProfileMonitor *monitor = g_power_profile_monitor_dup_default();
 
     if (monitor != NULL)
     {
         g_signal_connect(monitor, "notify::power-saver-enabled",
-                         G_CALLBACK(power_save_cb), ud);
-        show_power_widgets(power_save_widgets);
+                         G_CALLBACK(power_save_cb), self);
     }
     else
     {
@@ -280,60 +275,79 @@ power_monitor_new (signal_user_data_t *ud)
 #endif
 
 /* Initializes the D-Bus connections to monitor power state. */
-void
-ghb_power_manager_init (signal_user_data_t *ud)
+static void
+ghb_power_monitor_init (GhbPowerMonitor *self)
 {
-    static size_t init = 0;
-
-    if (g_once_init_enter(&init))
-    {
-        upower_proxy_new_async(ud);
+    g_debug("Initializing power monitor");
+    upower_proxy_new_async(self);
 #if GLIB_CHECK_VERSION(2, 70, 0)
-        power_monitor = power_monitor_new(ud);
+    self->profile_monitor = power_profile_monitor_new(self);
 #endif
-        g_once_init_leave(&init, 1);
-    }
+}
+
+GhbPowerMonitor *
+ghb_power_monitor_new (GhbPrefs *prefs)
+{
+    g_return_val_if_fail(GHB_IS_PREFS(prefs), NULL);
+
+    GhbPowerMonitor *monitor = g_object_new(GHB_TYPE_POWER_MONITOR, NULL);
+    monitor->prefs = g_object_ref(prefs);
+    return monitor;
 }
 
 /* Resets the status when the start/pause button is clicked, in order to
  * avoid phantom resumes. */
 void
-ghb_power_manager_reset (void)
+ghb_power_monitor_reset (GhbPowerMonitor *self)
 {
-    power_state = GHB_POWER_OK;
+    g_return_if_fail(GHB_IS_POWER_MONITOR(self));
+    self->power_state = GHB_POWER_OK;
 }
 
 /* Disposes of the signals and other objects before shutdown. */
-void
-ghb_power_manager_dispose (signal_user_data_t *ud)
+static void
+ghb_power_monitor_dispose (GObject *object)
 {
-    if (upower_proxy != NULL)
+    GhbPowerMonitor *self = GHB_POWER_MONITOR(object);
+    g_return_if_fail(GHB_IS_POWER_MONITOR(self));
+
+    if (self->upower_proxy != NULL)
     {
         g_debug("Disconnecting UPower proxy");
-        g_signal_handlers_disconnect_by_func(upower_proxy,
-                                             upower_status_cb, ud);
-        g_clear_object(&upower_proxy);
+        g_signal_handlers_disconnect_by_func(self->upower_proxy,
+                                             upower_status_cb, self);
+        g_clear_object(&self->upower_proxy);
     }
-    if (battery_proxy != NULL)
+    if (self->battery_proxy != NULL)
     {
         g_debug("Disconnecting battery level proxy");
-        g_signal_handlers_disconnect_by_func(battery_proxy,
-                                             battery_level_cb, ud);
-        g_clear_object(&battery_proxy);
+        g_signal_handlers_disconnect_by_func(self->battery_proxy,
+                                             battery_level_cb, self);
+        g_clear_object(&self->battery_proxy);
     }
 #if GLIB_CHECK_VERSION(2, 70, 0)
-    if (power_monitor != NULL)
+    if (self->profile_monitor != NULL)
     {
         g_debug("Disconnecting power monitor\n");
-        g_signal_handlers_disconnect_by_func(power_monitor,
-                                             power_save_cb, ud);
-        g_clear_object(&power_monitor);
+        g_signal_handlers_disconnect_by_func(self->profile_monitor,
+                                             power_save_cb, self);
+        g_clear_object(&self->profile_monitor);
     }
 #endif
+    g_clear_object(&self->prefs);
+    G_OBJECT_CLASS(ghb_power_monitor_parent_class)->dispose(object);
+}
+
+static void
+ghb_power_monitor_finalize (GObject *object)
+{
+    g_debug("Finalizing power monitor");
+    G_OBJECT_CLASS(ghb_power_monitor_parent_class)->finalize(object);
 }
 
 gboolean
-ghb_power_manager_has_battery (void)
+ghb_power_monitor_has_battery (GhbPowerMonitor *self)
 {
-    return has_battery;
+    g_return_val_if_fail(GHB_IS_POWER_MONITOR(self), FALSE);
+    return self->has_battery;
 }

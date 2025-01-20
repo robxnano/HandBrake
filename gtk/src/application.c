@@ -28,7 +28,7 @@
 #include "hb-dvd.h"
 #include "icon_res.h"
 #include "model/prefs.h"
-#include "power-manager.h"
+#include "model/power-monitor.h"
 #include "presets.h"
 #include "preview.h"
 #include "queuehandler.h"
@@ -61,6 +61,7 @@ struct _GhbApplication
     signal_user_data_t *ud;
     GtkBuilder *builder;
     GhbPrefs *prefs;
+    GhbPowerMonitor *power_monitor;
 
     char *app_dir;
     int cancel_encode;
@@ -691,6 +692,14 @@ ghb_application_get_app_dir (GhbApplication *self)
     return self->app_dir;
 }
 
+GhbPowerMonitor *
+ghb_application_get_power_monitor (GhbApplication *self)
+{
+    g_return_val_if_fail(GHB_IS_APPLICATION(self), NULL);
+
+    return self->power_monitor;
+}
+
 static void
 print_system_information (GhbApplication *self)
 {
@@ -782,7 +791,7 @@ ghb_application_activate (GApplication *app)
     setup_main_window_prefs(self);
 
     // Initialize D-Bus connections to monitor power settings
-    ghb_power_manager_init(ud);
+    self->power_monitor = ghb_power_monitor_new(self->prefs);
 
     // Enable drag & drop in queue list
     ghb_queue_drag_n_drop_init(ud);
@@ -1009,8 +1018,7 @@ ghb_application_shutdown (GApplication *app)
     if (self->builder != NULL)
         g_object_unref(self->builder);
 
-    ghb_power_manager_dispose(ud);
-
+    g_clear_object(&self->power_monitor);
     g_object_unref(self->prefs);
     g_object_unref(ud->extra_activity_buffer);
     g_object_unref(ud->queue_activity_buffer);
