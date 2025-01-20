@@ -57,4 +57,11 @@ typedef enum {
     GHB_QUEUE_STATUS_FAILED,
 } GhbQueueStatus;
 
+typedef enum /*< flags >*/ {
+    GHB_POWER_OK = 0,
+    GHB_POWER_PAUSED_POWER_SAVE = 1,
+    GHB_POWER_PAUSED_ON_BATTERY = 2,
+    GHB_POWER_PAUSED_LOW_BATTERY = 4,
+} GhbPowerState;
+
 G_END_DECLS
