@@ -3,6 +3,7 @@
 # UI files
 src/gui/menu.ui
 src/gui/ghb.ui
+src/gui/activity-window.ui
 src/gui/button.ui
 src/gui/chapter-row.ui
 src/gui/file-button.ui

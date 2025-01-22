@@ -24,6 +24,7 @@ ghb_src = files(
   'util.c',
   'values.c',
   'videohandler.c',
+  'gui/activity-window.c',
   'gui/button.c',
   'gui/chapter-row.c',
   'gui/file-button.c',
