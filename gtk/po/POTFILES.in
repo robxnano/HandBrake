@@ -1,9 +1,11 @@
 # List of source files containing translatable strings.
 
 # UI files
+<<<<<<< HEAD
 src/ui/menu.ui
 src/ui/ghb.ui
 src/ui/button.ui
+src/ui/activity-window.ui
 src/ui/chapter-row.ui
 src/ui/file-button.ui
 src/ui/prefs-dialog.ui

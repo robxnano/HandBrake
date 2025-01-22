@@ -278,13 +278,19 @@ clean_old_logs (void)
 #endif
 }
 
+char *
+ghb_application_get_log_file_name (GhbApplication *self)
+{
+    g_autofree char *config = ghb_get_user_config_dir(NULL);
+    pid_t pid = getpid();
+    return g_strdup_printf("%s/Activity.log.%" PRId64, config, (int64_t)pid);
+}
+
 static void
 io_redirect (GhbApplication *self, signal_user_data_t *ud)
 {
     GIOChannel *channel;
     gint pfd[2];
-    gchar *config, *path, *str;
-    pid_t pid;
 
     g_return_if_fail(GHB_IS_APPLICATION(self));
 
@@ -301,16 +307,9 @@ io_redirect (GhbApplication *self, signal_user_data_t *ud)
     }
     clean_old_logs();
     // Open activity log.
-    config = ghb_get_user_config_dir(NULL);
-    pid = getpid();
-    path = g_strdup_printf("%s/Activity.log.%"PRId64, config, (int64_t)pid);
+    g_autofree char *path = ghb_application_get_log_file_name(self);
     ud->activity_log = g_io_channel_new_file (path, "w", NULL);
     ud->job_activity_log = NULL;
-    str = g_strdup_printf("<big><b>%s</b></big>", path);
-    ghb_ui_update("activity_location", ghb_string_value(str));
-    g_free(str);
-    g_free(path);
-    g_free(config);
     if (ud->activity_log != NULL)
     {
         // Set encoding to raw.
@@ -804,8 +803,7 @@ ghb_application_activate (GApplication *app)
 
     // Get GtkTextBuffers for activity logs
     widget = ghb_builder_widget("activity_view");
-    ud->activity_buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget));
-    g_object_ref(ud->activity_buffer);
+    ud->activity_buffer = gtk_text_buffer_new(NULL);
     widget = ghb_builder_widget("queue_activity_view");
     ud->extra_activity_buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget));
     g_object_ref(ud->extra_activity_buffer);
@@ -904,8 +902,6 @@ ghb_application_activate (GApplication *app)
     window = GTK_WINDOW(ghb_builder_widget("queue_window"));
     gtk_application_add_window(GTK_APPLICATION(app), window);
     window = GTK_WINDOW(ghb_builder_widget("preview_window"));
-    gtk_application_add_window(GTK_APPLICATION(app), window);
-    window = GTK_WINDOW(ghb_builder_widget("activity_window"));
     gtk_application_add_window(GTK_APPLICATION(app), window);
     window = GTK_WINDOW(ghb_builder_widget("title_add_multiple_dialog"));
     gtk_application_add_window(GTK_APPLICATION(app), window);

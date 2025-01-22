@@ -4870,14 +4870,6 @@ ghb_log_cb(GIOChannel *source, GIOCondition cond, gpointer data)
     return TRUE;
 }
 
-G_MODULE_EXPORT void
-show_activity_action_cb(GSimpleAction *action, GVariant *value,
-                        signal_user_data_t *ud)
-{
-    GtkWidget *activity_window = ghb_builder_widget("activity_window");
-    gtk_window_present(GTK_WINDOW(activity_window));
-}
-
 void
 ghb_log (const char *log, ...)
 {
@@ -5658,8 +5650,7 @@ log_copy_action_cb (GSimpleAction *action, GVariant *param, signal_user_data_t *
     GtkTextIter start, end;
     GdkClipboard *clipboard = gdk_display_get_clipboard(gdk_display_get_default());
 
-    GtkTextView *log = GTK_TEXT_VIEW(ghb_builder_widget("activity_view"));
-    GtkTextBuffer *buffer = gtk_text_view_get_buffer(log);
+    GtkTextBuffer *buffer = ud->activity_buffer;
     gtk_text_buffer_get_start_iter(buffer, &start);
     gtk_text_buffer_get_end_iter(buffer, &end);
     gtk_text_buffer_select_range(buffer, &start, &end);

@@ -24,6 +24,7 @@ G_DECLARE_FINAL_TYPE(GhbApplication, ghb_application, GHB, APPLICATION, GtkAppli
 GhbApplication *ghb_application_new(const char *exe_name);
 
 const char *ghb_application_get_app_dir(GhbApplication *self);
+char *ghb_application_get_log_file_name(GhbApplication *self);
 GhbPrefs *ghb_application_get_prefs(GhbApplication *self);
 GhbPowerMonitor *ghb_application_get_power_monitor(GhbApplication *self);
 
