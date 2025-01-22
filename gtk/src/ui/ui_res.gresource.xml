@@ -2,6 +2,7 @@
 <gresources>
   <gresource prefix="/fr/handbrake/ghb/ui">
     <file>ghb.ui</file>
+    <file>activity-window.ui</file>
     <file>button.ui</file>
     <file>chapter-row.ui</file>
     <file>file-button.ui</file>
