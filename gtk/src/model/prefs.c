@@ -64,6 +64,91 @@ ghb_prefs_finalize (GObject *object)
     G_OBJECT_CLASS(ghb_prefs_parent_class)->finalize(object);
 }
 
+typedef struct {
+    const char *old;
+    const char *new;
+} PrefNameMap;
+
+/* An array of preference name mappings for key names
+ * that cannot be converted automatically. */
+static const PrefNameMap renamed_keys[] = {
+    {"DiskFreeLimitGB", "disk-free-limit"},
+    {"live_duration", "preview-duration"},
+};
+
+static char *
+prefs_get_new_name (const char *old_name)
+{
+    for (int i = 0; i < G_N_ELEMENTS(renamed_keys); i++)
+    {
+        if (!g_strcmp0(old_name, renamed_keys[i].old))
+            return g_strdup(renamed_keys[i].new);
+    }
+    GString *new_name = g_string_new(old_name);
+    g_string_replace(new_name, "_", "-", 0);
+    int n_replaced = 0;
+    for (int i = 1; i < strlen(old_name); i++)
+    {
+        if (g_ascii_isupper(old_name[i]))
+        {
+            g_string_insert_c(new_name, i + n_replaced, '-');
+            n_replaced++;
+            i++;
+        }
+    }
+    g_autofree char *replaced = g_string_free(new_name, FALSE);
+    return g_ascii_strdown(replaced, -1);
+}
+
+static void
+prefs_set_from_json (GhbPrefs *self, GSettingsSchema *schema,
+                     const char *new_name, GhbValue *value)
+{
+    GSettingsSchemaKey *key = g_settings_schema_get_key(schema, new_name);
+    const GVariantType *type = g_settings_schema_key_get_value_type(key);
+    const char *type_str = g_variant_type_peek_string(type); // not null-terminated
+    size_t type_len = g_variant_type_get_string_length(type);
+    if (!strncmp(type_str, "b", type_len))
+    {
+        ghb_prefs_set_boolean(self, new_name, ghb_value_get_bool(value));
+    }
+    else if (!strncmp(type_str, "i", type_len))
+    {
+        ghb_prefs_set_int(self, new_name, ghb_value_get_int(value));
+    }
+    else if (!strncmp(type_str, "d", type_len))
+    {
+        ghb_prefs_set_double(self, new_name, ghb_value_get_double(value));
+    }
+    else if (!strncmp(type_str, "s", type_len))
+    {
+        ghb_prefs_set_string(self, new_name, ghb_value_get_string(value));
+    }
+    //else if (!strncmp(type_str, "as", type_len))
+    else
+    {
+        g_warning("Unimplemented value type for setting: %s", new_name);
+    }
+}
+
+static void
+prefs_import_json (GhbPrefs *self, GSettingsSchema *schema, const char *path)
+{
+    GhbValue *json = ghb_json_parse_file(path);
+    GhbValue *preferences = ghb_dict_get(json, "Preferences");
+    const char *name;
+    GhbValue *val;
+    json_object_foreach (preferences, name, val)
+    {
+        g_autofree char *new_name = prefs_get_new_name(name);
+
+        if (g_settings_schema_has_key(schema, new_name))
+            prefs_set_from_json(self, schema, new_name, val);
+        else
+            g_warning("Skipping invalid legacy key '%s'", new_name);
+    }
+}
+
 GhbPrefs *
 ghb_prefs_new (void)
 {
@@ -93,9 +178,16 @@ ghb_prefs_new (void)
         g_error("Settings schema '" PREFS_SCHEMA_ID "' is not installed");
 
     g_autofree char *config_dir = ghb_get_user_config_dir(NULL);
-    g_autofree char *config_file = g_strconcat(config_dir, "/", PREFS_FILENAME, NULL);
-    GSettingsBackend *backend = g_keyfile_settings_backend_new(config_file, "/fr/handbrake/ghb/", NULL);
+    g_autofree char *ini_file = g_strconcat(config_dir, "/", PREFS_FILENAME, NULL);
+    g_autofree char *json_file = g_strconcat(config_dir, "/preferences.json", NULL);
+    // Test if preferences.ini exists before settings backend creates it
+    gboolean ini_exists = g_file_test(ini_file, G_FILE_TEST_IS_REGULAR);
+    GSettingsBackend *backend = g_keyfile_settings_backend_new(ini_file, "/fr/handbrake/ghb/", NULL);
     prefs->gsettings = g_settings_new_full(schema, backend, NULL);
+    if (!ini_exists && g_file_test(json_file, G_FILE_TEST_IS_REGULAR))
+    {
+        prefs_import_json(prefs, schema, json_file);
+    }
     return prefs;
 }
 
