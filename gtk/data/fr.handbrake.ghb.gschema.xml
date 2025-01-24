@@ -211,10 +211,6 @@
       <default>false</default>
       <summary>Use .m4v file extension for MP4 files</summary>
     </key>
-    <key name="version" type="d">
-      <default>2.0</default>
-      <summary>HandBrake preferences API version</summary>
-    </key>
     <key name="video-quality-granularity" type="d">
       <default>1.0</default>
       <summary>Video quality granularity</summary>

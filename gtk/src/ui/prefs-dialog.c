@@ -290,7 +290,6 @@ static GVariant *
 settings_set_value (const GValue *value,
                     const GVariantType *expected_type, GhbStringMap map[])
 {
-
     const char *type = g_variant_type_peek_string(expected_type); // not null-terminated
     guint idx = g_value_get_uint(value);
 
