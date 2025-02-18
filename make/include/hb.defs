@@ -22,7 +22,6 @@ HB.build/ = $(BUILD/)
 HB.SETUP.stamp     = $(HB.build/)compile_commands.json
 HB.CONFIGURE.stamp = $(HB.build/)build.ninja
 
-HB.CONFIGURE.exe   = $(MESON.exe)
 HB.CONFIGURE.extra = -Dc_args="$(call fn.ARGS,HB.GCC,*D ?extra)" \
                      -Dc_link_args="$(call fn.ARGS,HB.GCC,?extra.exe) $(HB.CONFIGURE.libdirs)" \
                      --pkg-config-path=$(call fn.ABSOLUTE,$(BUILD/))contrib/lib/pkgconfig:$(PKG_CONFIG_PATH) \
@@ -63,10 +62,16 @@ else
     HB.CONFIGURE.extra += -Db_lto=false
 endif
 
-ifeq (1,$(SECURITY.harden))
+ifneq (0-0,$(SECURITY.harden)-$(FEATURE.shared))
     HB.CONFIGURE.extra += -Db_pie=true
 else
     HB.CONFIGURE.extra += -Db_pie=false
+endif
+
+ifeq (1,$(FEATURE.shared))
+    HB.CONFIGURE.extra += -Ddefault_library=shared
+else
+    HB.CONFIGURE.extra += -Ddefault_library=static
 endif
 
 ifeq (1,$(FEATURE.fdk_aac))
