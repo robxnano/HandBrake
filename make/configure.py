@@ -1355,6 +1355,8 @@ def createCLI( cross = None ):
 
     ## add build options
     grp = cli.add_argument_group( 'Build Options' )
+    h = argparse.SUPPRESS if host_tuple.match( '*-*-mingw*', '*-*-darwin*') else 'Build libhandbrake shared library'
+    grp.add_argument( '--shared', default=False, action='store_true', help=h )
     grp.add_argument( '--snapshot', default=False, action='store_true', help='Force a snapshot build' )
     h = IfHost( 'Build extra contribs for flatpak packaging', '*-*-linux*', none=argparse.SUPPRESS ).value
     grp.add_argument( '--flatpak', default=False, action='store_true', help=h )
@@ -2154,6 +2156,7 @@ int main()
         doc.add( 'GCC.minver', '' )
     doc.add( 'GCC.W.extra', " ".join(gcc_w_extra) )
 
+    doc.add('LIBHB.shared', int(options.shared))
     if host_tuple.match( 'i?86-*' ):
         doc.add( 'LIBHB.GCC.D', 'ARCH_X86_32', append=True )
     elif host_tuple.match( 'x86_64-*' ):

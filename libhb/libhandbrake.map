@@ -1,0 +1,7 @@
+{
+  global:
+    hb_*;
+    lang_*;
+  local:
+    *;
+};
