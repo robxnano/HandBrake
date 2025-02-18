@@ -136,15 +136,24 @@ foreach d: libhb_defs
 endforeach
 
 subdir('handbrake')
+libhb_version = '10'
 
-libhb = static_library('handbrake',
+map_file = 'libhandbrake.map'
+link_map = '-Wl,--version-script,' + meson.current_source_dir() / map_file
+if cc.has_link_argument(link_map)
+  libhb_link_args += link_map
+endif
+
+libhb = library('handbbrake',
   sources: libhb_src,
   dependencies: hb_deps,
   include_directories: hb_incdirs,
   link_language: 'cpp',
+  link_depends: map_file,
   c_args: libhb_args,
+  version: libhb_version,
   link_args: libhb_link_args,
-  install: false)
+  install: get_option('default_library') == 'shared')
 
 if host_machine.system() == 'windows'
   hbdll = shared_library('hb',
