@@ -53,6 +53,11 @@ endif
 
 TEST.GCC.I += $(LIBHB.GCC.I)
 
+ifeq (1,$(SECURITY.harden))
+    TEST.GCC.args.extra += -fPIE
+    TEST.GCC.args.extra.exe++ += -pie
+endif
+
 ifeq ($(HOST.system),darwin)
     TEST.GCC.f += IOKit CoreServices CoreText CoreGraphics AudioToolbox VideoToolbox CoreMedia CoreVideo IOSurface Foundation DiskArbitration Metal
     TEST.GCC.l += iconv

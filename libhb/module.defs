@@ -50,6 +50,7 @@ LIBHB.out += $(LIBHB.a)
 
 LIBHB.GCC.D += __LIBHB__
 LIBHB.GCC.I += $(LIBHB.build/) $(CONTRIB.build/)include
+LIBHB.GCC.args.extra += -fPIC
 
 ifeq (1,$(FEATURE.qsv))
     ifeq ($(HOST.system),freebsd)
@@ -177,6 +178,7 @@ LIBHB.dll.libs += $(CONTRIB.build/)lib/liblzma.a
 else
     LIBHB.GCC.l += lzma
 endif
+
 
 LIBHB.GCC.args.extra.dylib++ += -Wl,--out-implib,$(LIBHB.lib)
 LIBHB.GCC.l += bcrypt ws2_32 uuid ole32 gdi32 userenv ntdll

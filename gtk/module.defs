@@ -84,6 +84,12 @@ else
     GTK.CONFIGURE.extra += -Dflatpak=false
 endif
 
+ifeq (1,$(SECURITY.harden))
+    GTK.CONFIGURE.extra += -Db_pie=true
+else
+    GTK.CONFIGURE.extra += -Db_pie=false
+endif
+
 ifneq (,$(filter $(HOST.system),freebsd netbsd openbsd))
     GTK.CONFIGURE.libdirs = -L$(LOCALBASE)/lib
 endif
