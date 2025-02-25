@@ -1571,6 +1571,7 @@ void ghb_low_disk_check (signal_user_data_t *ud)
     GtkWidget       *dialog, *cancel;
     ghb_status_t     status;
     const char      *dest;
+    char            *size_str;
     gint64           free_size;
     gint64           free_limit;
     GhbValue        *qDict;
@@ -1601,25 +1602,26 @@ void ghb_low_disk_check (signal_user_data_t *ud)
         return;
     }
     // limit is in GB
-    free_limit = ghb_dict_get_int(ud->prefs, "DiskFreeLimitGB") * 1024;
+    free_limit = ghb_dict_get_int(ud->prefs, "DiskFreeLimitGB") * 1024 * 1024 * 1024;
     if (free_size > free_limit)
     {
         return;
     }
 
     ghb_pause_queue();
-    ghb_send_notification(GHB_NOTIFY_PAUSED_LOW_DISK_SPACE,
-                          free_size / 1024, ud);
+    ghb_send_notification(GHB_NOTIFY_PAUSED_LOW_DISK_SPACE, free_size, ud);
     dest      = ghb_dict_get_string(settings, "destination");
     hb_window = GTK_WINDOW(ghb_builder_widget("hb_window"));
     dialog    = gtk_message_dialog_new(hb_window, GTK_DIALOG_MODAL,
                     GTK_MESSAGE_WARNING, GTK_BUTTONS_NONE,
                     _("Low Disk Space: Encoding Paused"));
+    size_str  = ghb_format_pretty_size(free_size);
     gtk_message_dialog_format_secondary_text(GTK_MESSAGE_DIALOG(dialog),
-        _("The destination filesystem is almost full: %"PRId64" MB free.\n"
+        _("The destination filesystem is almost full: %s free.\n"
           "Destination: %s\n"
           "Encode may be incomplete if you proceed."),
-        free_size / (1024 * 1024), dest);
+        size_str, dest);
+    g_free(size_str);
     gtk_dialog_add_buttons( GTK_DIALOG(dialog),
                            _("Resume, I've fixed the problem"), 1,
                            _("Resume, Don't tell me again"), 2,
