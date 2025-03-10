@@ -1401,6 +1401,10 @@ def createCLI( cross = None ):
     h = IfHost( 'enable assembly code in non-contrib modules', 'NOMATCH*-*-darwin*', 'NOMATCH*-*-linux*', none=argparse.SUPPRESS ).value
     grp.add_argument( '--enable-asm', default=False, action='store_true', help=h )
 
+    # macOS and Windows only support static builds
+    h = 'enable static build' if static_optional else argparse.SUPPRESS
+    grp.add_argument('--enable-static', dest="enable_static", default=False, action='store_true', help=h)
+
     # GTK GUI is enabled by default on Linux and BSD
     gtk_default = host_tuple.match( '*-*-linux*', '*-*-*bsd*' )
     h = 'enable GTK GUI' if gtk_supported else argparse.SUPPRESS
@@ -1737,6 +1741,7 @@ try:
     nvenc_supported = host_tuple.match( '*-*-linux*', 'x86_64-w64-mingw32*' )
     vce_supported   = host_tuple.match( '*-*-linux*', 'x86_64-w64-mingw32*' )
     mf_supported    = host_tuple.match( 'aarch64-w64-mingw32*' )
+    static_optional = not host_tuple.match( '*-*-mingw*', '*-*-*darwin*' )
 
     # create CLI and parse
     cli = createCLI( cross )
@@ -1781,6 +1786,7 @@ try:
     options.enable_qsv        = options.enable_qsv if qsv_supported else False
     options.enable_vce        = options.enable_vce if vce_supported else False
     options.enable_gtk        = options.enable_gtk if gtk_supported else False
+    options.enable_static     = options.enable_static if static_optional else False
 
     #####################################
     ## Additional library and tool checks
@@ -2089,6 +2095,7 @@ int main()
     doc.add( 'FEATURE.x265',       int( options.enable_x265 ))
     doc.add( 'FEATURE.numa',       int( options.enable_numa ))
     doc.add( 'FEATURE.libdovi',    int( options.enable_libdovi ))
+    doc.add( 'FEATURE.static',     int( options.enable_static ))
 
     if build_tuple.match( '*-*-darwin*' ) and options.cross is None:
         doc.add( 'FEATURE.xcode',      int( not (Tools.xcodebuild.fail or options.disable_xcode) ))

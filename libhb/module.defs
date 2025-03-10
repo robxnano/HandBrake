@@ -108,6 +108,10 @@ ifneq (,$(filter $(HOST.arch),ppc ppc64))
 	LIBHB.GCC.D += WORDS_BIGENDIAN
 endif
 
+ifeq (1,$(FEATURE.static))
+    LIBHB.GCC.args.extra.dylib++ += -Wl,--enable-auto-import -static
+endif
+
 ###############################################################################
 
 ifeq (1-mingw,$(HOST.cross)-$(HOST.system))

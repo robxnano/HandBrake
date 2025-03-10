@@ -108,6 +108,26 @@ ifneq (,$(filter $(HOST.system),netbsd))
     MODULES += contrib/libjpeg-turbo
 endif
 
+ifeq (1,$(FEATURE.static))
+    MODULES += contrib/bzip2
+    MODULES += contrib/freetype
+    MODULES += contrib/fribidi
+    MODULES += contrib/harfbuzz
+    MODULES += contrib/libass
+    MODULES += contrib/libogg
+    MODULES += contrib/libvorbis
+    MODULES += contrib/libopus
+    MODULES += contrib/libspeex
+    MODULES += contrib/libtheora
+    MODULES += contrib/lame
+    MODULES += contrib/x264
+    MODULES += contrib/jansson
+    MODULES += contrib/libvpx
+    MODULES += contrib/libjpeg-turbo
+    MODULES += contrib/xz
+    MODULES += contrib/zlib
+endif
+
 ## these must come after contrib since some contrib modules are optional
 MODULES += libhb
 

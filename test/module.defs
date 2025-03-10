@@ -2,7 +2,12 @@ $(eval $(call import.MODULE.defs,TEST,test,LIBHB))
 $(eval $(call import.GCC,TEST))
 
 TEST.PKGCONFIG.env = PKG_CONFIG_PATH="$(call fn.ABSOLUTE,$(CONTRIB.build/))lib/pkgconfig:$(PKG_CONFIG_PATH)"
-TEST.PKGCONFIG.exe = $(TEST.PKGCONFIG.env) $(PKGCONFIG.exe)
+
+ifeq (1,$(FEATURE.static))
+    TEST.PKGCONFIG.exe = $(TEST.PKGCONFIG.env) $(PKGCONFIG.exe) --static
+else
+    TEST.PKGCONFIG.exe = $(TEST.PKGCONFIG.env) $(PKGCONFIG.exe)
+endif
 
 TEST.src/   = $(SRC/)test/
 TEST.build/ = $(BUILD/)test/
@@ -92,3 +97,7 @@ endif
     TEST.GCC.D += PTW32_STATIC_LIB
     TEST.GCC.args.extra.exe++ += -static
 endif #   (1-mingw,$(HOST.cross)-$(HOST.system))
+
+ifeq (1,$(FEATURE.static))
+    TEST.GCC.args.extra.exe++ += -static
+endif
