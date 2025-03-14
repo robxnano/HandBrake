@@ -63,6 +63,12 @@ else
     HB.CONFIGURE.extra += -Db_lto=false
 endif
 
+ifeq (1,$(SECURITY.harden))
+    HB.CONFIGURE.extra += -Db_pie=true
+else
+    HB.CONFIGURE.extra += -Db_pie=false
+endif
+
 ifeq (1,$(FEATURE.fdk_aac))
     HB.CONFIGURE.extra += -Dfdk-aac=enabled
 else
