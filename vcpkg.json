@@ -1,0 +1,38 @@
+{
+  "name": "handbrake",
+  "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
+  "features": {
+    "x265": {
+      "description": "Enable x265 encoder",
+      "dependencies": [
+        {
+          "name": "numactl",
+          "platform": "linux"
+        }
+      ]
+    }
+  },
+  "default-features": [
+    "x265"
+  ],
+  "dependencies": [
+    "bzip2",
+    {
+      "name": "fontconfig",
+      "platform": "!windows & !osx"
+    },
+    "jansson",
+    "mp3lame",
+    "libass",
+    "libjpeg-turbo",
+    "liblzma",
+    "libogg",
+    "libtheora",
+    "libvorbis",
+    "libvpx",
+    "opus",
+    "speex",
+    "x264",
+    "zlib"
+  ]
+}
