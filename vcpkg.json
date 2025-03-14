@@ -10,6 +10,26 @@
           "platform": "linux"
         }
       ]
+    },
+    "gtk": {
+      "description": "Enable GTK GUI",
+      "dependencies": [
+        {
+           "name": "gtk",
+           "features": [
+             "introspection"
+           ]
+        },
+        "libxml2"
+      ]
+    },
+    "extra": {
+      "description": "Extra libraries (not used)",
+      "dependencies": [
+        "dav1d",
+        "libdvdnav",
+        "libdvdread"
+      ]
     }
   },
   "default-features": [
