@@ -26,9 +26,12 @@
     "extra": {
       "description": "Extra libraries (not used)",
       "dependencies": [
+        "cpuinfo",
         "dav1d",
+        "libbluray",
         "libdvdnav",
-        "libdvdread"
+        "libdvdread",
+        "zimg"
       ]
     }
   },
