@@ -9,6 +9,7 @@ project('HandBrake', 'c', 'cpp',
 
 cc = meson.get_compiler('c')
 hb_incdirs = include_directories('libhb')
+hb_libdirs = meson.current_build_dir() / 'contrib/lib'
 
 if get_option('pkg_config_path') == []
   error('HandBrake has not been configured yet. Please run ./configure first.')
@@ -74,15 +75,17 @@ if host_machine.system() == 'windows'
   add_project_link_arguments('-mwindows', language: ['c', 'cpp'])
   win_dlls = ['bcrypt', 'ntdll', 'ole32', 'regex', 'userenv', 'uuid', 'ws2_32']
   foreach dll: win_dlls
-    hb_deps += cc.find_library(dll)
+    hb_deps += cc.find_library(dll, dirs: hb_libdirs)
   endforeach
 elif not cc.has_function('dlopen')
   hb_deps += cc.find_library('dl')
 endif
 
 if not cc.has_function('iconv')
-  hb_deps += cc.find_library('iconv')
-  add_project_arguments('-DLIBICONV_PLUG', language: ['c', 'cpp'])
+  hb_deps += cc.find_library('iconv', dirs: hb_libdirs)
+  if host_machine.system() != 'windows'
+    add_project_arguments('-DLIBICONV_PLUG', language: ['c', 'cpp'])
+  endif
 endif
 
 if not get_option('c_std').contains('gnu')
