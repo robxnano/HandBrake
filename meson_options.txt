@@ -15,7 +15,7 @@ option('flatpak',
 
 option('gtk',
        type: 'feature',
-       value: 'auto',
+       value: 'enabled',
        description: 'Enable the GTK GUI')
 
 option('harden',

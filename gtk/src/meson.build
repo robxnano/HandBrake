@@ -60,4 +60,5 @@ ghb = executable('ghb',
   link_with: libhb,
   c_args: ghb_args,
   link_args: ghb_link_args,
+  win_subsystem: 'windows',
   install: true)
