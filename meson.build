@@ -1,4 +1,4 @@
-# Copyright (C) 2023-2024 HandBrake Team
+# Copyright (C) 2023-2025 HandBrake Team
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 project('HandBrake', 'c', 'cpp',
@@ -8,6 +8,7 @@ project('HandBrake', 'c', 'cpp',
   default_options: ['warning_level=1', 'buildtype=release'])
 
 cc = meson.get_compiler('c')
+cpp = meson.get_compiler('cpp')
 hb_incdirs = include_directories('libhb')
 hb_libdirs = meson.current_build_dir() / 'contrib/lib'
 
@@ -72,7 +73,6 @@ endif
 # OS-specific dependencies
 
 if host_machine.system() == 'windows'
-  add_project_link_arguments('-mwindows', language: ['c', 'cpp'])
   win_dlls = ['bcrypt', 'ntdll', 'ole32', 'regex', 'userenv', 'uuid', 'ws2_32']
   foreach dll: win_dlls
     hb_deps += cc.find_library(dll, dirs: hb_libdirs)
@@ -82,26 +82,25 @@ elif not cc.has_function('dlopen')
 endif
 
 if not cc.has_function('iconv')
-  hb_deps += cc.find_library('iconv', dirs: hb_libdirs)
+  libiconv = cc.find_library('iconv', required: false)
+  if not libiconv.found()
+    libiconv = cc.find_library('iconv', dirs: hb_libdirs)
+  endif
+  hb_deps += libiconv
   if host_machine.system() != 'windows'
-    add_project_arguments('-DLIBICONV_PLUG', language: ['c', 'cpp'])
+    add_project_arguments('-DLIBICONV_PLUG', language: ['c', 'cpp', 'objc'])
   endif
 endif
 
 if not get_option('c_std').contains('gnu')
-  add_project_arguments('-D_DEFAULT_SOURCE', language: ['c', 'cpp'])
+  add_project_arguments('-D_DEFAULT_SOURCE', language: ['c', 'cpp', 'objc'])
 endif
 
-link_args = cc.get_supported_link_arguments('-Wl,--exclude-libs,ALL')
+link_args = cpp.get_supported_link_arguments('-Wl,--exclude-libs,ALL')
 
-add_project_link_arguments(link_args, language: ['c', 'cpp'])
+add_project_link_arguments(link_args, language: 'cpp')
 
-# GTK GUI enabled by default except on Windows and macOS
-if host_machine.system() in ['windows', 'darwin']
-  gtk_enabled = get_option('gtk').enabled()
-else
-  gtk_enabled = not get_option('gtk').disabled()
-endif
+gtk_enabled = get_option('gtk').enabled()
 
 subdir('libhb')
 subdir('test') # CLI

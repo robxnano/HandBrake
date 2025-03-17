@@ -1,4 +1,4 @@
-# Copyright (C) 2023-2024 HandBrake Team
+# Copyright (C) 2023-2025 HandBrake Team
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 i18n = import('i18n')
@@ -22,8 +22,6 @@ ghb_args = [
   '-DGDK_VERSION_MAX_ALLOWED=GDK_VERSION_4_4',
 ]
 
-ghb_link_args = [get_option('c_link_args')]
-
 ghb_args += cc.get_supported_arguments(
   '-Wno-missing-field-initializers',
   '-Wno-sign-compare',
@@ -46,7 +44,7 @@ ghb_args += cc.get_supported_arguments(
   '-Wunused',
   '-Wwrite-strings')
 
-ghb_link_args += cc.get_supported_link_arguments('-Wl,--export-dynamic')
+ghb_link_args = cpp.get_supported_link_arguments('-Wl,--export-dynamic')
 
 subdir('po')
 subdir('icons')

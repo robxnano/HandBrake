@@ -23,10 +23,10 @@ HB.SETUP.stamp     = $(HB.build/)compile_commands.json
 HB.CONFIGURE.stamp = $(HB.build/)build.ninja
 
 HB.CONFIGURE.extra = -Dc_args="$(call fn.ARGS,HB.GCC,*D ?extra)" \
-                     -Dc_link_args="$(call fn.ARGS,HB.GCC,?extra.exe) $(HB.CONFIGURE.libdirs)" \
+                     -Dcpp_link_args="$(call fn.ARGS,HB.GCC,?extra.exe) $(HB.CONFIGURE.libdirs)" \
                      --pkg-config-path=$(call fn.ABSOLUTE,$(BUILD/))contrib/lib/pkgconfig:$(PKG_CONFIG_PATH) \
                      --prefix=$(PREFIX)
-HB.CONFIGURE.env   = CC="$(GCC.gcc)" CXX="$(GCC.gxx)"
+HB.CONFIGURE.env   = CC="$(GCC.gcc)" CXX="$(GCC.gxx)" OBJC="$(GCC.gcc)"
 
 ###############################################################################
 

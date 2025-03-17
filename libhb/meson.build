@@ -1,9 +1,9 @@
-# Copyright (C) 2023-2024 HandBrake Team
+# Copyright (C) 2023-2025 HandBrake Team
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 libhb_defs = ['__LIBHB__']
 libhb_args = []
-libhb_link_args = [get_option('c_link_args')]
+libhb_link_args = []
 
 libhb_src = files(
   'audio_remap.c',
@@ -88,10 +88,8 @@ libhb_src = files(
 
 if get_option('qsv').enabled()
   libhb_src += files(
-    'enc_qsv.c',
     'qsv_common.c',
     'qsv_libav.c',
-    'qsv_memory.c',
   )
 endif
 
@@ -100,7 +98,7 @@ if host_machine.system() == 'windows'
   if not cc.has_function('pthread_create')
     libhb_defs += 'PTW32_STATIC_LIB'
   endif
-  libhb_link_args += ['-Wl,--enable-auto-import', '-static']
+  libhb_link_args += cpp.get_supported_link_arguments('-Wl,--enable-auto-import')
 elif host_machine.system() == 'darwin'
   libhb_defs += 'SYS_DARWIN'
   subdir('platform/macosx')
@@ -140,29 +138,34 @@ libhb_version = '10'
 
 map_file = 'libhandbrake.map'
 link_map = '-Wl,--version-script,' + meson.current_source_dir() / map_file
-if cc.has_link_argument(link_map)
+if cpp.has_link_argument(link_map)
   libhb_link_args += link_map
 endif
 
-libhb = library('handbbrake',
+libhb = library('handbrake',
   sources: libhb_src,
   dependencies: hb_deps,
   include_directories: hb_incdirs,
   link_language: 'cpp',
   link_depends: map_file,
   c_args: libhb_args,
+  objc_args: libhb_args,
   version: libhb_version,
   link_args: libhb_link_args,
-  install: get_option('default_library') == 'shared')
+  install: get_option('default_library') == 'shared',
+)
 
 if host_machine.system() == 'windows'
+  libhb_objs = libhb.extract_all_objects(recursive: true)
   hbdll = shared_library('hb',
-  sources: libhb_src,
-  name_prefix: '',
-  dependencies: hb_deps,
-  include_directories: hb_incdirs,
-  link_language: 'cpp',
-  c_args: libhb_args,
-  link_args: libhb_link_args,
-  install: true)
+    objects: libhb_objs,
+    name_prefix: '',
+    dependencies: hb_deps,
+    include_directories: hb_incdirs,
+    link_language: 'cpp',
+    c_args: libhb_args,
+    objc_args: libhb_args,
+    link_args: libhb_link_args,
+    install: true,
+  )
 endif
