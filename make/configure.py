@@ -1190,10 +1190,9 @@ class ConfigDocument:
             else:
                 out_file.write( '%-*s  = %s\n' % (namelen, name, value) )
 
-    def _outputM4( self, out_file, namelen, name, value ):
-        namelen += 7
-        name = '<<__%s>>,' % name.replace( '.', '_' )
-        out_file.write( 'define(%-*s  <<%s>>)dnl\n' % (namelen, name, value ))
+    def _outputM4( self, out_file, name, value ):
+        name = name.replace('.', '_')
+        out_file.write( '%s=%s\n' % (name, value ))
 
     def add( self, name, value, append=False ):
         self._elements.append( [name,value,append] )
@@ -1203,7 +1202,6 @@ class ConfigDocument:
 
     def addComment( self, format, *args ):
         self.addMake( '## ' + format % args )
-        self.addM4( 'dnl ' + format % args )
 
     def addMake( self, line ):
         self._elements.append( ('?make',line) )
@@ -1220,9 +1218,7 @@ class ConfigDocument:
                 namelen = len(item[0])
         for item in self._elements:
             if item == None:
-                if type == 'm4':
-                    out_file.write( 'dnl\n' )
-                else:
+                if type != 'm4':
                     out_file.write( '\n' )
                 continue
             if item[0].find( '?' ) == 0:
@@ -1231,7 +1227,7 @@ class ConfigDocument:
                 continue
 
             if type == 'm4':
-                self._outputM4( out_file, namelen, item[0], item[1] )
+                self._outputM4( out_file, item[0], item[1] )
             else:
                 self._outputMake( out_file, namelen, item[0], item[1], item[2] )
 
