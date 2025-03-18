@@ -101,7 +101,6 @@ if host_machine.system() == 'windows'
   libhb_link_args += cpp.get_supported_link_arguments('-Wl,--enable-auto-import')
 elif host_machine.system() == 'darwin'
   libhb_defs += 'SYS_DARWIN'
-  subdir('platform/macosx')
 elif host_machine.system() == 'linux'
   libhb_defs += 'SYS_LINUX'
 elif host_machine.system() == 'freebsd'
@@ -122,7 +121,7 @@ if get_option('qsv').enabled()
 endif
 
 if not cc.has_function('strtok_r')
-  libhb_defs += HB_NEED_STRTOK_R
+  libhb_defs += 'HB_NEED_STRTOK_R'
 endif
 
 if cc.has_function('strerror_r')
@@ -134,7 +133,9 @@ foreach d: libhb_defs
 endforeach
 
 subdir('handbrake')
-libhb_version = '10'
+if host_machine.system() == 'darwin'
+  subdir('platform/macosx')
+endif
 
 map_file = 'libhandbrake.map'
 link_map = '-Wl,--version-script,' + meson.current_source_dir() / map_file
@@ -150,16 +151,16 @@ libhb = library('handbrake',
   link_depends: map_file,
   c_args: libhb_args,
   objc_args: libhb_args,
-  version: libhb_version,
   link_args: libhb_link_args,
   install: get_option('default_library') == 'shared',
+  version: '10',
 )
 
 if host_machine.system() == 'windows'
   libhb_objs = libhb.extract_all_objects(recursive: true)
   hbdll = shared_library('hb',
-    objects: libhb_objs,
     name_prefix: '',
+    objects: libhb_objs,
     dependencies: hb_deps,
     include_directories: hb_incdirs,
     link_language: 'cpp',
