@@ -1,7 +1,9 @@
 # Copyright (C) 2023-2025 HandBrake Team
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-add_languages('objc')
+add_languages('objc', native: false)
+xcrun = find_program('xcrun')
+bin2c = find_program(meson.project_build_root() / 'bin2c')
 
 libhb_src += files(
   'chroma_smooth_vt.m',
@@ -36,6 +38,23 @@ libhb_metal_src = files(
   'shaders/yadif_vt.metal',
 )
 
-# metal_gen = generator(['xcrun', 'metal'],
-#   arguments: ['-O2', '-std=macos-metal2.4', '@INPUT@'])
-#
+metal_flags = []
+
+metal_gen = generator(xcrun,
+  arguments: ['metal',
+    '-O2', '-std=macos-metal2.4', '-c', '-frecord-sources',
+    '@INPUT@', '-o', '@OUTPUT@'],
+  output: '@BASENAME@.air',
+)
+libhb_air = metal_gen.process(libhb_metal_src)
+metallib_gen = generator(xcrun,
+  arguments: ['metallib', '@INPUT@', '-o', '@OUTPUT@'],
+  output: '@BASENAME@.metallib',
+)
+libhb_metallib = metallib_gen.process(libhb_air)
+
+bin2c_gen = generator(bin2c,
+  arguments: ['@INPUT@', '@OUTPUT@'],
+  output: '@BASENAME@.c',
+)
+libhb_src += bin2c_gen.process(libhb_metallib)

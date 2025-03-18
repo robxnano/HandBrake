@@ -4,7 +4,7 @@
 project('HandBrake', 'c', 'cpp',
   version: run_command('scripts/version.py', check: true).stdout().strip(),
   license: 'GPL-2.0-only',
-  meson_version: '>= 0.51.0',
+  meson_version: '>= 0.56.0',
   default_options: ['warning_level=1', 'buildtype=release'])
 
 cc = meson.get_compiler('c')
@@ -12,8 +12,9 @@ cpp = meson.get_compiler('cpp')
 hb_incdirs = include_directories('libhb')
 hb_libdirs = meson.current_build_dir() / 'contrib/lib'
 
-if get_option('pkg_config_path') == []
-  error('HandBrake has not been configured yet. Please run ./configure first.')
+fs = import('fs')
+if not fs.is_dir(meson.project_build_root() / 'contrib')
+  error('External dependencies have not been built yet.\nPlease run ./configure instead of using Meson directly.')
 endif
 
 # External dependencies (required)
