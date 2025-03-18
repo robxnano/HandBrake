@@ -108,9 +108,6 @@ ifneq (,$(filter $(HOST.system),netbsd))
     MODULES += contrib/libjpeg-turbo
 endif
 
-## these must come after contrib since some contrib modules are optional
-## MODULES += libhb
-
 ###############################################################################
 
 ifeq (1-darwin,$(FEATURE.xcode)-$(HOST.system))
