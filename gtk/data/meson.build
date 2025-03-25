@@ -10,6 +10,7 @@ desktop = i18n.merge_file(
   output: 'fr.handbrake.ghb.desktop',
   install: host_machine.system() not in ['windows', 'haiku'],
   install_dir: get_option('datadir') / 'applications',
+  install_tag: 'runtime',
   po_dir: po_dir,
   type: 'desktop')
 
@@ -27,6 +28,7 @@ metainfo = i18n.merge_file(
   output: 'fr.handbrake.ghb.metainfo.xml',
   install: host_machine.system() not in ['windows', 'haiku'],
   install_dir: get_option('datadir') / 'metainfo',
+  install_tag: 'runtime',
   po_dir: po_dir,
   type: 'xml')
 
