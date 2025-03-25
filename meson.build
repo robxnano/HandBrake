@@ -4,7 +4,7 @@
 project('HandBrake', 'c', 'cpp',
   version: run_command('scripts/version.py', check: true).stdout().strip(),
   license: 'GPL-2.0-only',
-  meson_version: '>= 0.56.0',
+  meson_version: '>= 0.60.0',
   default_options: ['warning_level=1', 'buildtype=release'])
 
 cc = meson.get_compiler('c')

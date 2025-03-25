@@ -28,10 +28,10 @@ hb.test:
 	$(NINJA.exe) test $(HB.BUILD.extra)
 
 hb.install-strip:
-	$(MESON.exe) install --strip
+	$(MESON.exe) install --strip --tags runtime,i18n
 
 hb.install:
-	$(NINJA.exe) install
+	$(MESON.exe) install --tags runtime,i18n
 
 hb.uninstall:
 	$(NINJA.exe) uninstall
