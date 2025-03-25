@@ -51,7 +51,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: HandBrakeCLI_ARM64
-        path: ./build/HandBrakeCLI.exe
+        path: ./build/test/HandBrakeCLI.exe
 
     - name: Upload LibHB
       uses: actions/upload-artifact@v4
@@ -117,7 +117,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: HandBrakeCLI
-        path: ./build/HandBrakeCLI.exe
+        path: ./build/test/HandBrakeCLI.exe
 
     - name: Upload LibHB
       uses: actions/upload-artifact@v4
