@@ -106,6 +106,10 @@ gtk_enabled = get_option('gtk').enabled()
 subdir('libhb')
 subdir('test') # CLI
 
+if host_machine.system() == 'darwin'
+  subdir('macosx')
+endif
+
 if gtk_enabled
   subdir('gtk')
 endif
