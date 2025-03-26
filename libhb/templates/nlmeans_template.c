@@ -240,7 +240,7 @@ static void FUNC(nlmeans_filter_csm)(const pixel *src,
     const int bw = w + 2 * border;
     const int offset_min = -((size - 1) /2);
     const int offset_max =   (size + 1) /2;
-    pixel min,  max,
+    pixel min = 0, max = 0,
           min2, max2,
           min3, max3,
           median,

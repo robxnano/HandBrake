@@ -9,6 +9,7 @@
 
 #include "handbrake/common.h"
 #include "handbrake/avfilter_priv.h"
+#include "handbrake/hwaccel.h"
 
 #if HB_PROJECT_FEATURE_QSV && (defined( _WIN32 ) || defined( __MINGW32__ ))
 #include "handbrake/qsv_common.h"
