@@ -8,3 +8,7 @@ ZIMG.EXTRACT.tarbase = zimg-release-3.0.5
 
 ZIMG.CONFIGURE.bootstrap = rm -fr aclocal.m4 autom4te.cache configure; autoreconf -fiv;
 ZIMG.CONFIGURE.extra     = --with-pic
+
+ifeq (aarch64-mingw,$(HOST.machine)-$(HOST.system))
+    ZIMG.CONFIGURE.env = STL_LIBS=-lc++
+endif
