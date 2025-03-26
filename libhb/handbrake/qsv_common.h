@@ -22,6 +22,7 @@ int  hb_qsv_impl_set_preferred(const char *name);
 #ifdef __LIBHB__
 // Private API
 
+#define MFX_DEPRECATED_OFF 1
 #include "vpl/mfxvideo.h"
 #include "handbrake/hb_dict.h"
 #include "handbrake/qsv_libav.h"

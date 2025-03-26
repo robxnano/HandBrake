@@ -27,6 +27,7 @@
 #include "handbrake/project.h"
 
 #if HB_PROJECT_FEATURE_QSV
+#define MFX_DEPRECATED_OFF 1
 #include "vpl/mfxstructures.h"
 #if defined(SYS_LINUX) || defined(SYS_FREEBSD)
 #include <va/va_drm.h>
@@ -132,7 +133,6 @@ char * hb_strndup(const char * src, size_t len);
  ***********************************************************************/
 const char * hb_get_temporary_directory(void);
 char * hb_get_temporary_filename( char *fmt, ... );
-size_t hb_getline(char **lineptr, size_t *n, FILE *fp);
 
 #ifdef __LIBHB__
 
