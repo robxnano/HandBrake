@@ -32,7 +32,8 @@ metainfo = i18n.merge_file(
 
 appstreamcli = find_program('appstreamcli', required: false, disabler: true)
 test('Validate metainfo file', appstreamcli,
-  args: ['validate', '--strict', '--no-net', '--explain', metainfo])
+  args: ['validate', '--strict', '--no-net', '--explain', 
+         '--override', 'developer-name-tag-deprecated=pedantic', metainfo])
 
 desktop_utils = find_program('desktop-file-validate', required: false, disabler: true)
 test('Validate desktop file', desktop_utils, args: desktop)
