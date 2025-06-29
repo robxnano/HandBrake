@@ -7,6 +7,7 @@ CONTRIB.spec      = $(if $(filter 1,$(HOST.cross)),$(BUILD.spec))
 
 ##
 ## $(1) = module name (uppercase)
+## $(2) = build system (autoconf, cmake, meson)
 ##
 define import.CONTRIB.defs
     ##
@@ -27,7 +28,6 @@ define import.CONTRIB.defs
     $(1).build/ = $$(CONTRIB.build/)$($(1).dir)/
     ## add prerequisites and autotool modules for all contribs
     $(1).deps   = $$(foreach n,$($(1).prerequisites),$$($$n.INSTALL.target))
-    $(1).build_dir =
 
     ##
     ## target: fetch
@@ -86,24 +86,70 @@ define import.CONTRIB.defs
     ##
     ## target: configure
     ##
-    $(1).CONFIGURE.sete       = set -e;
-    $(1).CONFIGURE.dir        = $$($(1).EXTRACT.dir/)$$($(1).build_dir)
-    $(1).CONFIGURE.bootstrap  =
-    $(1).CONFIGURE.exe        = ./configure
-    $(1).CONFIGURE.host       = $$(CONTRIB.host)
-    $(1).CONFIGURE.build      = $$(CONTRIB.spec)
-    $(1).CONFIGURE.prefix     = $$(call fn.ABSOLUTE,$$(CONTRIB.build/))
-    $(1).CONFIGURE.deps       = --disable-dependency-tracking
-    $(1).CONFIGURE.shared     = --disable-shared
-    $(1).CONFIGURE.static     = --enable-static
-    $(1).CONFIGURE.extra      =
+ifeq (cmake,$(2))
+    $(1).CONFIGURE.exe         = $$(CMAKE.exe)
+    $(1).CONFIGURE.deps        =
+    $(1).CONFIGURE.shared      =
+    $(1).CONFIGURE.static      = -DBUILD_SHARED_LIBS=OFF
+    $(1).CONFIGURE.args.prefix = -DCMAKE_INSTALL_PREFIX=$$(1)
+    $(1).CONFIGURE.libdir      = -DCMAKE_INSTALL_LIBDIR=lib
+    $(1).CONFIGURE.pic         = -DCMAKE_POSITION_INDEPENDENT_CODE=ON
+    $(1).CONFIGURE.source_dir  = "$$(call fn.ABSOLUTE,$$($(1).EXTRACT.dir/))"
+    $(1).CONFIGURE.extra       =
+    ifeq (1,$(HOST.cross))          
+        ifeq ($(HOST.system),mingw)
+            $(1).CONFIGURE.args.host = -DWIN32=ON -DMINGW=ON -DCMAKE_SYSTEM_NAME=Windows \
+                                       -DCMAKE_SYSTEM_PROCESSOR=$$(HOST.machine) \
+                                       -DCMAKE_RC_COMPILER=$$(HOST.cross.prefix)windres
+        else ifeq ($(HOST.system),darwin)
+            $(1).CONFIGURE.args.host = -DCMAKE_SYSTEM_NAME=Darwin
+        else
+            $(1).CONFIGURE.args.host = -DCMAKE_SYSTEM_NAME=$$(HOST.systemf) -DCMAKE_SYSTEM_PROCESSOR=$$(HOST.machine)
+        endif
+    $(1).CONFIGURE.args.host += -DCMAKE_C_COMPILER=$$($(1).GCC.gcc) -DCMAKE_CXX_COMPILER=$$($(1).GCC.gxx)
+    endif
 
-    $(1).CONFIGURE.args.dir    = $$(MKDIR.exe) -p $$(1); cd $$(1);
+    ifeq ($(HOST.system),darwin)
+        $(1).CONFIGURE.extra += -DCMAKE_SYSTEM_PROCESSOR=$$(HOST.machine) \
+                                -DCMAKE_OSX_ARCHITECTURES=$$(HOST.machine)
+    endif
+else ifeq (meson,$(2))
+    $(1).CONFIGURE.exe         = $$(MESON.exe) setup
+    $(1).CONFIGURE.deps        =
+    $(1).CONFIGURE.shared      =
+    $(1).CONFIGURE.static      = -Ddefault_library=static
+    $(1).CONFIGURE.args.prefix = --prefix=$$(1)
+    $(1).CONFIGURE.extra       =
+    ifeq (darwin,$(HOST.system))
+        $(1).CONFIGURE.args.host = --cross-file=$$(call fn.ABSOLUTE,$(SRC/))make/cross/$$(HOST.machine)-darwin-gcc.meson
+    else
+        $(1).CONFIGURE.args.host = --cross-file=$$(call fn.ABSOLUTE,$(SRC/))make/cross/$$(1).meson
+    endif
+    $(1).CONFIGURE.libdir      = --libdir=lib
+    $(1).CONFIGURE.pic         =
+    $(1).CONFIGURE.args.build  =
+else
+    $(1).CONFIGURE.exe         = ./configure
+    $(1).CONFIGURE.deps        = --disable-dependency-tracking
+    $(1).CONFIGURE.shared      = --disable-shared
+    $(1).CONFIGURE.static      = --enable-static
+    $(1).CONFIGURE.args.prefix = --prefix=$$(1)
+    $(1).CONFIGURE.extra       =
+    $(1).CONFIGURE.libdir      =
+    $(1).CONFIGURE.pic         =
     $(1).CONFIGURE.args.host   = --host=$$(1)
     $(1).CONFIGURE.args.build  = --build=$$(1)
-    $(1).CONFIGURE.args.prefix = --prefix=$$(1)
+endif
+    $(1).CONFIGURE.sete        = set -e;
+    $(1).CONFIGURE.dir         = $$($(1).EXTRACT.dir/)$$($(1).build_dir)
+    $(1).CONFIGURE.bootstrap   =
+    $(1).CONFIGURE.host        = $$(CONTRIB.host)
+    $(1).CONFIGURE.build       = $$(CONTRIB.spec)
+    $(1).CONFIGURE.prefix      = $$(call fn.ABSOLUTE,$$(CONTRIB.build/))
 
-    $(1).CONFIGURE.args = !sete @dir !bootstrap !env !exe @host @build @prefix !deps !shared !static !extra
+    $(1).CONFIGURE.args.dir    = $$(MKDIR.exe) -p $$(1); cd $$(1);
+
+    $(1).CONFIGURE.args = !sete @dir !bootstrap !env !exe @host @build @prefix !libdir !deps !shared !static !pic !extra !source_dir
 
     $(1).CONFIGURE.env.LOCAL_PATH =
     $(1).CONFIGURE.env.CC       = CC=$$($(1).GCC.gcc)
@@ -140,14 +186,25 @@ define import.CONTRIB.defs
     ## target: build
     ##
     $(1).BUILD.env      =
+ifeq (cmake,$(2))
+    $(1).BUILD.make     = +$$(CMAKE.exe)
+else ifeq (meson,$(2))
+    $(1).BUILD.make     = +$$(MESON.exe)
+else
     $(1).BUILD.make     = $$(MAKE)
+endif
     $(1).BUILD.dir      = $$($(1).EXTRACT.dir/)$$($(1).build_dir)
     $(1).BUILD.extra    =
     $(1).BUILD.ntargets =
 
     $(1).BUILD.args = !env !make @dir !extra !ntargets
+ifeq (cmake,$(2))
+    $(1).BUILD.args.dir = --build $$(1)
+else ifeq (meson,$(2))
+    $(1).BUILD.args.dir = compile -C $$(1)
+else
     $(1).BUILD.args.dir = -C $$(1)
-
+endif
     $(1).BUILD.target = $$($(1).build/).stamp.$$($(1).name).build
     define $(1).BUILD
         $$(call fn.ARGS,$(1).BUILD,$$($(1).BUILD.args))
@@ -157,14 +214,19 @@ define import.CONTRIB.defs
     ##
     ## target: install
     ##
-    $(1).INSTALL.make     = $$(MAKE)
+    $(1).INSTALL.make     = $$($(1).BUILD.make)
     $(1).INSTALL.dir      = $$($(1).EXTRACT.dir/)$$($(1).build_dir)
     $(1).INSTALL.extra    =
     $(1).INSTALL.ntargets =
 
     $(1).INSTALL.args = !make @dir !extra !ntargets
+ifeq (cmake,$(2))
+    $(1).INSTALL.args.dir = --install $$(1)
+else ifeq (meson,$(2))
+    $(1).INSTALL.args.dir = install -C $$(1)
+else
     $(1).INSTALL.args.dir = -j 1 -C $$(1) install
-
+endif
     $(1).INSTALL.mkdirs = $$(CONTRIB.build/)lib/ $$(CONTRIB.build/)include/
     $(1).INSTALL.target = $$($(1).build/).stamp.$$($(1).name).install
     define $(1).INSTALL
@@ -175,13 +237,23 @@ define import.CONTRIB.defs
     ##
     ## target: uninstall
     ##
+ifeq (cmake,$(2))
+    $(1).UNINSTALL.make     = $$(CMAKE.exe)
+    $(1).UNINSTALL.args.dir = --build $$(1)
+    $(1).UNINSTALL.ntargets = --target uninstall
+else ifeq (meson,$(2))
+    $(1).UNINSTALL.make     = $$(NINJA.exe)
+    $(1).UNINSTALL.args.dir = -C $$(1)
+    $(1).UNINSTALL.ntargets = uninstall
+else
     $(1).UNINSTALL.make     = $$(MAKE)
+    $(1).UNINSTALL.args.dir = -C $$(1)
+    $(1).UNINSTALL.ntargets = uninstall
+endif
     $(1).UNINSTALL.dir      = $$($(1).EXTRACT.dir/)$$($(1).build_dir)
     $(1).UNINSTALL.extra    =
-    $(1).UNINSTALL.ntargets = uninstall
 
     $(1).UNINSTALL.args = !make @dir !extra !ntargets
-    $(1).UNINSTALL.args.dir = -C $$(1)
 
     define $(1).UNINSTALL
         $$(call fn.ARGS,$(1).UNINSTALL,$$($(1).UNINSTALL.args))
@@ -191,13 +263,21 @@ define import.CONTRIB.defs
     ##
     ## target: clean
     ##
-    $(1).CLEAN.make     = $$(MAKE)
+    $(1).CLEAN.make     = $$($(1).BUILD.make)
     $(1).CLEAN.dir      = $$($(1).EXTRACT.dir/)$$($(1).build_dir)
     $(1).CLEAN.extra    =
+ifeq (cmake,$(2))
+    $(1).CLEAN.ntargets = --target clean
+    $(1).CLEAN.args.dir = --build $$(1)
+else ifeq (meson,$(2))
+    $(1).CLEAN.ntargets = --clean
+    $(1).CLEAN.args.dir = compile -C $$(1)
+else
     $(1).CLEAN.ntargets = clean
+    $(1).CLEAN.args.dir = -C $$(1)
+endif
 
     $(1).CLEAN.args = !make @dir !extra !ntargets
-    $(1).CLEAN.args.dir = -C $$(1)
 
     define $(1).CLEAN
         $$(call fn.ARGS,$(1).CLEAN,$$($(1).CLEAN.args))

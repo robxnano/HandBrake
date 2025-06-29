@@ -1,7 +1,7 @@
 __deps__ := CPUINFO
 
 $(eval $(call import.MODULE.defs,SVT-AV1,svt-av1,$(__deps__)))
-$(eval $(call import.CONTRIB.defs,SVT-AV1))
+$(eval $(call import.CONTRIB.defs,SVT-AV1,cmake))
 
 SVT-AV1.FETCH.url     = https://github.com/HandBrake/HandBrake-contribs/releases/download/contribs2/SVT-AV1-v3.0.2.tar.gz
 SVT-AV1.FETCH.url    += https://gitlab.com/AOMediaCodec/SVT-AV1/-/archive/v3.0.2/SVT-AV1-v3.0.2.tar.gz
@@ -10,13 +10,7 @@ SVT-AV1.FETCH.sha256  = 5af7f4376aa00a4dee32df04be1cdd1983c9940bcc019ee6b29bb8a2
 SVT-AV1.GCC.args.c_std =
 
 SVT-AV1.build_dir             = build
-SVT-AV1.CONFIGURE.exe         = cmake
-SVT-AV1.CONFIGURE.args.prefix = -DCMAKE_INSTALL_PREFIX="$(SVT-AV1.CONFIGURE.prefix)"
-SVT-AV1.CONFIGURE.deps        =
-SVT-AV1.CONFIGURE.static      =
-SVT-AV1.CONFIGURE.shared      = -DBUILD_SHARED_LIBS=OFF
-SVT-AV1.CONFIGURE.extra       = -DBUILD_APPS=OFF -DREPRODUCIBLE_BUILDS=ON
-SVT-AV1.CONFIGURE.extra      += -DCMAKE_INSTALL_LIBDIR=lib
+SVT-AV1.CONFIGURE.extra      += -DBUILD_APPS=OFF -DREPRODUCIBLE_BUILDS=ON
 
 ifeq ($(GCC.O),$(filter $(GCC.O),size size-aggressive))
     SVT-AV1.CONFIGURE.extra += -DCMAKE_BUILD_TYPE=MinSizeRel -DMINIMAL_BUILD=ON
@@ -39,32 +33,3 @@ ifeq (native,$(GCC.cpu))
 else ifeq (none,$(GCC.cpu))
     SVT-AV1.CONFIGURE.extra += -DNATIVE=OFF
 endif
-
-ifeq (1,$(HOST.cross))
-    ifeq (mingw,$(HOST.system))
-        SVT-AV1.CONFIGURE.extra += -DWIN32=ON -DMINGW=ON
-        SVT-AV1.CONFIGURE.extra += -DCMAKE_SYSTEM_NAME=Windows
-        SVT-AV1.CONFIGURE.extra += -DCMAKE_SYSTEM_PROCESSOR=$(HOST.machine)
-        SVT-AV1.CONFIGURE.extra += -DCMAKE_C_COMPILER=$(SVT-AV1.GCC.gcc)
-        SVT-AV1.CONFIGURE.extra += -DCMAKE_CXX_COMPILER=$(SVT-AV1.GCC.gxx)
-        SVT-AV1.CONFIGURE.extra += -DCMAKE_RC_COMPILER=$(HOST.cross.prefix)windres
-
-        SVT-AV1.CONFIGURE.args.host  = -DCMAKE_HOST_SYSTEM="$(SVT-AV1.CONFIGURE.host)"
-    else ifeq ($(HOST.system),darwin)
-        SVT-AV1.CONFIGURE.extra += -DCMAKE_SYSTEM_NAME=Darwin
-        SVT-AV1.CONFIGURE.args.host  = -DCMAKE_HOST_SYSTEM="$(SVT-AV1.CONFIGURE.host)"
-    else
-        SVT-AV1.CONFIGURE.args.host  = -DCMAKE_SYSTEM_NAME="$(SVT-AV1.CONFIGURE.host)"
-    endif
-    SVT-AV1.CONFIGURE.args.build = -DCMAKE_HOST_SYSTEM="$(SVT-AV1.CONFIGURE.build)"
-else
-    SVT-AV1.CONFIGURE.args.host  = -DCMAKE_HOST_SYSTEM="$(SVT-AV1.CONFIGURE.host)"
-endif
-
-ifeq ($(HOST.system),darwin)
-    SVT-AV1.CONFIGURE.extra += -DCMAKE_SYSTEM_PROCESSOR=$(HOST.machine)
-    SVT-AV1.CONFIGURE.extra += -DCMAKE_OSX_ARCHITECTURES=$(HOST.machine)
-endif
-
-## find CMakeLists.txt
-SVT-AV1.CONFIGURE.extra += "$(call fn.ABSOLUTE,$(SVT-AV1.EXTRACT.dir/))"
