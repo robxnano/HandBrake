@@ -1,6 +1,6 @@
 __deps__ := X265_8 X265_10 X265_12
 $(eval $(call import.MODULE.defs,X265,x265,$(__deps__)))
-$(eval $(call import.CONTRIB.defs,X265))
+$(eval $(call import.CONTRIB.defs,X265,cmake))
 
 X265.FETCH.url     = https://github.com/HandBrake/HandBrake-contribs/releases/download/contribs2/x265-snapshot-20250507-13244.tar.gz
 #X265.FETCH.url    += https://bitbucket.org/multicoreware/x265_git/downloads/x265_4.1.tar.gz
@@ -9,7 +9,7 @@ X265.FETCH.sha256  = 53a6e0b29a644654e2e5612d78cb1aead7c1645b2e730f99c8fbeae0e27
 # Silence "warning: overriding recipe for target" messages
 X265.FETCH.target =
 
-X265.INSTALL.args.dir = -j 1 -C $(X265.BUILD.dir)/8bit install;
+X265.INSTALL.args.dir = --install $(X265.BUILD.dir)/8bit;
 X265.INSTALL.extra = $(CP.exe) $(X265.BUILD.dir)/libx265.a $(CONTRIB.build/)lib
 X265.INSTALL.args = !make @dir !extra
 
@@ -19,9 +19,6 @@ X265.CLEAN.make = $(RM.exe) -rf
 X265.CLEAN.args.dir = cd $(1);
 X265.CLEAN.extra = libx265.a
 X265.CLEAN.args = @dir !make !extra
-
-## find CMakeLists.txt
-X265.CONFIGURE.extra += "$(call fn.ABSOLUTE,$(X265.EXTRACT.dir/)source/)"
 
 ## optional static libs need to be marked
 X265.OSL.libs  = x265
@@ -36,9 +33,9 @@ X265.CONFIGURE = $(TOUCH.exe) $@
 X265.BUILD = $(TOUCH.exe) $@
 
 X265.SOURCE.libs = \
-	$(X265.BUILD.dir)/8bit/libx265_main.a \
-	$(X265.BUILD.dir)/10bit/libx265_main10.a \
-	$(X265.BUILD.dir)/12bit/libx265_main12.a
+	$(X265.BUILD.dir)/8bit/libx265.a \
+	$(X265.BUILD.dir)/10bit/libx265.a \
+	$(X265.BUILD.dir)/12bit/libx265.a
 
 ifeq (1-mingw,$(HOST.cross)-$(HOST.system))
     X265.O.ext = .obj

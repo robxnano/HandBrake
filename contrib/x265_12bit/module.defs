@@ -1,6 +1,6 @@
 __deps__ := X265_8
 $(eval $(call import.MODULE.defs,X265_12,x265_12,$(__deps__),x265))
-$(eval $(call import.CONTRIB.defs,X265_12))
+$(eval $(call import.CONTRIB.defs,X265_12,cmake))
 
 X265_12.FETCH.url     = https://github.com/HandBrake/HandBrake-contribs/releases/download/contribs2/x265-snapshot-20250507-13244.tar.gz
 #X265_12.FETCH.url    += https://bitbucket.org/multicoreware/x265_git/downloads/x265_4.1.tar.gz
@@ -10,11 +10,7 @@ X265_12.FETCH.sha256  = 53a6e0b29a644654e2e5612d78cb1aead7c1645b2e730f99c8fbeae0
 X265_12.FETCH.target =
 
 X265_12.build_dir             = 12bit
-X265_12.CONFIGURE.exe         = cmake
-X265_12.CONFIGURE.args.prefix = -DCMAKE_INSTALL_PREFIX="$(X265_12.CONFIGURE.prefix)"
-X265_12.CONFIGURE.args.host   = -DCMAKE_HOST_SYSTEM="$(X265_12.CONFIGURE.build)"
-X265_12.CONFIGURE.deps        =
-X265_12.CONFIGURE.static      =
+X265_12.CONFIGURE.source_dir  = "$(call fn.ABSOLUTE,$(X265_12.EXTRACT.dir/))/source"
 X265_12.CONFIGURE.shared      = -DENABLE_SHARED=OFF
 X265_12.CONFIGURE.extra       = -DENABLE_CLI=OFF -DHIGH_BIT_DEPTH=ON -DEXPORT_C_API=OFF -DMAIN12=ON -DCMAKE_ASM_NASM_FLAGS=-w-macro-params-legacy
 
@@ -26,20 +22,6 @@ ifeq (size-aggressive,$(GCC.O))
     X265_12.CONFIGURE.extra += -DCMAKE_CXX_FLAGS_MINSIZEREL="-Oz -DNDEBUG" -DCMAKE_C_FLAGS_MINSIZEREL="-Oz -DNDEBUG"
 endif
 
-ifeq (darwin,$(HOST.system))
-    X265_12.CONFIGURE.extra += -DCMAKE_OSX_ARCHITECTURES=$(HOST.machine)
-endif
-
-ifeq ($(GCC.O),$(filter $(GCC.O),size size-aggressive))
-    X265_12.CONFIGURE.extra += -DCMAKE_BUILD_TYPE=MinSizeRel
-else
-    ifneq (none,$(X265_12.GCC.g))
-        X265_12.CONFIGURE.extra += -DCMAKE_BUILD_TYPE=Debug
-    else
-        X265_12.CONFIGURE.extra += -DCMAKE_BUILD_TYPE=Release
-    endif
-endif
-
 ifeq (on,$(GCC.lto))
     X265_12.CONFIGURE.extra += -DCMAKE_INTERPROCEDURAL_OPTIMIZATION=TRUE
 else ifeq (thin,$(GCC.lto))
@@ -48,29 +30,10 @@ else ifeq (off,$(GCC.lto))
     X265_12.CONFIGURE.extra += -DCMAKE_INTERPROCEDURAL_OPTIMIZATION=FALSE
 endif
 
-ifeq (1,$(HOST.cross))
-    ifeq (mingw,$(HOST.system))
-        X265_12.CONFIGURE.extra += -DWIN32=ON
-        X265_12.CONFIGURE.extra += -DCMAKE_SYSTEM_NAME=Windows
-        X265_12.CONFIGURE.extra += -DCMAKE_C_COMPILER=$(X265_12.GCC.gcc)
-        X265_12.CONFIGURE.extra += -DCMAKE_CXX_COMPILER=$(X265_12.GCC.gxx)
-        X265_12.CONFIGURE.extra += -DCMAKE_RC_COMPILER=$(HOST.cross.prefix)windres
-        X265_12.CONFIGURE.args.host  = -DCMAKE_HOST_SYSTEM="$(X265_12.CONFIGURE.host)"
-    endif
-    X265_12.CONFIGURE.args.build = -DCMAKE_SYSTEM_PROCESSOR=$(HOST.machine)
-endif
-
-## find CMakeLists.txt
-X265_12.CONFIGURE.extra += "$(call fn.ABSOLUTE,$(X265_12.EXTRACT.dir/)source/)"
-
-X265_12.INSTALL.make = $(MV.exe)
-X265_12.INSTALL.args.dir = cd $(1);
-X265_12.INSTALL.extra = libx265.a libx265_main12.a
-X265_12.INSTALL.args = @dir !make !extra
-
 # Override operations that are not needed
 X265_12.FETCH =
 X265_12.VERIFY = $(TOUCH.exe) $@
 X265_12.EXTRACT = $(TOUCH.exe) $@
 X265_12.PATCH = $(TOUCH.exe) $@
+X265_12.INSTALL = $(TOUCH.exe) $@
 X265_12.XCLEAN =
