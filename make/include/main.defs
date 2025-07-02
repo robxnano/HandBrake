@@ -2,7 +2,6 @@ include $(SRC/)make/include/base.defs
 include $(SRC/)make/include/contrib.defs
 include $(SRC/)make/include/function.defs
 include $(SRC/)make/include/gcc.defs
-include $(SRC/)make/include/metal.defs
 include $(SRC/)make/include/target.defs
 include $(SRC/)make/include/tool.defs
 
@@ -108,21 +107,11 @@ ifneq (,$(filter $(HOST.system),netbsd))
     MODULES += contrib/libjpeg-turbo
 endif
 
-## these must come after contrib since some contrib modules are optional
-MODULES += libhb
-
 ###############################################################################
 
 ifeq (1-darwin,$(FEATURE.xcode)-$(HOST.system))
     ## use macosx module when xcode+darwin
     MODULES += macosx
-else
-    ## default is to build CLI
-    MODULES += test
-endif
-
-ifeq (1,$(FEATURE.gtk))
-    MODULES += gtk
 endif
 
 ###############################################################################
@@ -132,5 +121,6 @@ MODULES += pkg
 ###############################################################################
 
 include $(MODULES:%=$(SRC/)%/module.defs)
+include $(SRC/)make/include/app.defs
 include $(SRC/)make/variant/$(HOST.system).defs
 -include $(SRC/)make/variant/$(HOST.system).$(HOST.machine).defs

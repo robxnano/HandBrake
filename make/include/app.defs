@@ -1,0 +1,133 @@
+__deps__ := BZIP2 LIBVPX SVT-AV1 FFMPEG FREETYPE LAME LIBASS \
+    LIBDVDREAD LIBDVDNAV LIBICONV LIBTHEORA LIBVORBIS LIBOGG \
+    X264 X265 ZLIB LIBBLURAY FDKAAC LIBVPL LIBGNURX JANSSON \
+    HARFBUZZ LIBOPUS LIBSPEEX LIBDAV1D LIBJPEGTURBO LIBDOVI
+
+ifeq (,$(filter $(HOST.system),darwin cygwin mingw))
+    __deps__ += FONTCONFIG
+endif
+ifeq (netbsd,$(HOST.system))
+    __deps__ += LIBJPEGTURBO
+endif
+
+$(eval $(call import.MODULE.defs,APP,app,$(__deps__)))
+$(eval $(call import.GCC,APP))
+$(eval $(call import.METAL,APP))
+
+APP.d = $(foreach n,$(APP.prerequisites),$($n.INSTALL.target))
+
+APP.src/   = $(SRC/)
+APP.build/ = $(BUILD/)
+
+APP.SETUP.stamp     = $(APP.build/)compile_commands.json
+APP.CONFIGURE.stamp = $(APP.build/)build.ninja
+
+APP.CONFIGURE.exe   = $(MESON.exe)
+APP.CONFIGURE.extra = -Dc_args="$(call fn.ARGS,APP.GCC,*D *archs *sysroot *minver ?extra)" \
+                     -Dcpp_link_args="$(call fn.ARGS,APP.GCC, *archs *sysroot *minver ?extra.exe) $(APP.CONFIGURE.libdirs)" \
+                     --pkg-config-path=$(call fn.ABSOLUTE,$(BUILD/))contrib/lib/pkgconfig:$(PKG_CONFIG_PATH) \
+                     --prefix=$(PREFIX)
+APP.CONFIGURE.env   = CC="$(GCC.gcc)" CXX="$(GCC.gxx)"
+
+###############################################################################
+
+APP.out += $(APP.CONFIGURE.stamp)
+
+BUILD.out += $(APP.out)
+
+###############################################################################
+
+ifneq (none,$(APP.GCC.g))
+    APP.CONFIGURE.extra += -Ddebug=true
+else
+    APP.CONFIGURE.extra += -Ddebug=false
+endif
+
+ifeq (speed,$(APP.GCC.O))
+    ifeq (none,$APP.GCC.g)
+        APP.CONFIGURE.extra += -Doptimization=3
+    else
+        APP.CONFIGURE.extra += -Doptimization=2
+    endif
+else
+    ifneq (,$(filter $(APP.GCC.O),size size-aggressive))
+        APP.CONFIGURE.extra += -Doptimization=s
+    else
+        APP.CONFIGURE.extra += -Doptimization=0
+    endif
+endif
+
+ifeq (on,$(GCC.lto))
+    APP.CONFIGURE.extra += -Db_lto=true
+else
+    APP.CONFIGURE.extra += -Db_lto=false
+endif
+
+ifeq (1,$(FEATURE.fdk_aac))
+    APP.CONFIGURE.extra += -Dfdk-aac=enabled
+else
+    APP.CONFIGURE.extra += -Dfdk-aac=disabled
+endif
+
+ifeq (1,$(FEATURE.x265))
+    APP.CONFIGURE.extra += -Dx265=enabled
+else
+    APP.CONFIGURE.extra += -Dx265=disabled
+endif
+
+ifeq (1,$(FEATURE.numa))
+    APP.CONFIGURE.extra += -Dnuma=enabled
+else
+    APP.CONFIGURE.extra += -Dnuma=disabled
+endif
+
+ifeq (1,$(FEATURE.qsv))
+    APP.CONFIGURE.extra += -Dqsv=enabled
+else
+    APP.CONFIGURE.extra += -Dqsv=disabled
+endif
+
+ifeq (1,$(FEATURE.libdovi))
+    APP.CONFIGURE.extra += -Dlibdovi=enabled
+else
+    APP.CONFIGURE.extra += -Dlibdovi=disabled
+endif
+
+ifeq (1,$(FEATURE.flatpak))
+    APP.CONFIGURE.extra += -Dflatpak=true
+else
+    APP.CONFIGURE.extra += -Dflatpak=false
+endif
+
+ifeq (1,$(FEATURE.gtk))
+    APP.CONFIGURE.extra += -Dgtk=enabled
+else
+    APP.CONFIGURE.extra += -Dgtk=disabled
+endif
+
+ifneq (,$(filter $(HOST.system),freebsd netbsd openbsd))
+    APP.CONFIGURE.libdirs = -L$(LOCALBASE)/lib
+endif
+
+ifeq (mingw,$(HOST.system))
+    APP.CONFIGURE.extra += -Dprefer_static=true
+endif
+
+ifeq (darwin,$(HOST.system))
+    APP.CONFIGURE.extra += -Dobjc_args="$(call fn.ARGS,APP.GCC,*D *archs *sysroot *minver ?extra)"
+    APP.CONFIGURE.env   += OBJC="$(GCC.gcc)"
+endif
+
+ifeq (1,$(HOST.cross))
+    ifeq (darwin,$(HOST.system))
+        APP.CONFIGURE.cross = --cross-file=$(SRC/)make/cross/$(HOST.machine)-darwin-gcc.meson
+    else
+        APP.CONFIGURE.cross = --cross-file=$(SRC/)make/cross/$(HOST.spec).meson
+    endif
+endif
+
+ifneq (-,$(V)-$(VERBOSE))
+    APP.BUILD.extra = -v
+endif
+
+export APP.version APP.repo.date

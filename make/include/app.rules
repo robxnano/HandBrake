@@ -1,0 +1,46 @@
+$(eval $(call import.MODULE.rules,APP))
+
+build: app.build
+install: app.install
+install-strip: app.install-strip
+uninstall: app.uninstall
+clean: app.clean
+xclean: app.xclean
+
+app.configure: $(APP.SETUP.stamp)
+
+$(APP.SETUP.stamp): | $(APP.d) $(BUILD/)GNUmakefile
+	$(APP.CONFIGURE.env) $(MESON.exe) setup \
+		$(call fn.ABSOLUTE,$(APP.build/)) $(call fn.ABSOLUTE,$(APP.src/)) $(APP.CONFIGURE.extra) $(APP.CONFIGURE.cross)
+
+$(APP.CONFIGURE.stamp): $(BUILD/)GNUmakefile | $(APP.SETUP.stamp)
+	$(MESON.exe) configure --clearcache $(call fn.ABSOLUTE,$(APP.build/)) $(APP.CONFIGURE.extra)
+	$(TOUCH.exe) $(call fn.ABSOLUTE,$(APP.CONFIGURE.stamp))
+
+app.reconfigure: | $(APP.SETUP.stamp)
+	$(MESON.exe) setup --reconfigure \
+		$(call fn.ABSOLUTE,$(APP.build/)) $(call fn.ABSOLUTE,$(APP.src/)) $(APP.CONFIGURE.extra)
+
+app.build: | $(APP.SETUP.stamp) $(APP.CONFIGURE.stamp)
+	+$(NINJA.exe) $(APP.BUILD.extra)
+
+app.test: app.build
+	$(NINJA.exe) test $(APP.BUILD.extra)
+
+app.install-strip: app.build
+	$(MESON.exe) install --strip --tags runtime,i18n
+
+app.install: app.build
+	$(MESON.exe) install --tags runtime,i18n
+
+app.uninstall:
+	$(NINJA.exe) uninstall
+
+app.clean:
+	-$(NINJA.exe) clean
+
+app.xclean: app.clean
+	-$(RM.exe) -r $(call fn.ABSOLUTE,$(APP.build/))meson-info
+	-$(RM.exe) -r $(call fn.ABSOLUTE,$(APP.build/))meson-logs
+	-$(RM.exe) -r $(call fn.ABSOLUTE,$(APP.build/))meson-private
+	-$(RM.exe) $(APP.SETUP.stamp) $(APP.CONFIGURE.stamp)

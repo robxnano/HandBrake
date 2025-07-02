@@ -2,6 +2,7 @@
 c = 'clang'
 cpp = 'clang++'
 pkg-config = ['pkgconf', '--env-only']
+strip = 'strip'
 
 [host_machine]
 system = 'darwin'

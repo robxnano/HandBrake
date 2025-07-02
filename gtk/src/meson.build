@@ -54,8 +54,11 @@ ui = gnome.compile_resources('ui_res', 'ui/ui_res.gresource.xml',
 # Build targets
 executable('ghb',
   sources: [ghb_src, data, icons, ui],
-  dependencies: ghb_deps,
+  dependencies: [hb_deps, ghb_deps],
   include_directories: hb_incdirs,
   link_language: 'cpp',
-  link_args: get_option('c_link_args'),
+  link_with: libhb,
+  c_args: ghb_args,
+  link_args: ghb_link_args,
+  win_subsystem: 'windows',
   install: true)
