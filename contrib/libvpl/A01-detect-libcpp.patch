@@ -1,0 +1,16 @@
+diff --git a/libvpl/CMakeLists.txt b/libvpl/CMakeLists.txt
+index 46503e162..ddbf16fe9 100644
+--- a/libvpl/CMakeLists.txt
++++ b/libvpl/CMakeLists.txt
+@@ -192,6 +192,11 @@ if(INSTALL_DEV)
+   endif()
+   if(NOT MSVC)
+     set(CXX_LIB "-lstdc++")
++    foreach(LIB ${CMAKE_CXX_IMPLICIT_LINK_LIBRARIES})
++      if(LIB STREQUAL "c++")
++        set(CXX_LIB "-lc++")
++      endif()
++    endforeach()
+   endif()
+   set(VPL_PKGCONFIG_DEPENDENT_LIBS
+       "${DL_LIBS} ${CMAKE_THREAD_LIBS_INIT} ${MINGW_LIBS} ${CXX_LIB}")
