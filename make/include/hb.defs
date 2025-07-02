@@ -1,0 +1,124 @@
+__deps__ := BZIP2 LIBVPX SVT-AV1 FFMPEG FREETYPE LAME LIBASS \
+    LIBDVDREAD LIBDVDNAV LIBICONV LIBTHEORA LIBVORBIS LIBOGG \
+    X264 X265 ZLIB LIBBLURAY FDKAAC LIBVPL LIBGNURX JANSSON \
+    HARFBUZZ LIBOPUS LIBSPEEX LIBDAV1D LIBJPEGTURBO LIBDOVI
+
+ifeq (,$(filter $(HOST.system),darwin cygwin mingw))
+    __deps__ += FONTCONFIG
+endif
+ifeq (netbsd,$(HOST.system))
+    __deps__ += LIBJPEGTURBO
+endif
+
+$(eval $(call import.MODULE.defs,HB,hb,$(__deps__)))
+$(eval $(call import.GCC,HB))
+$(eval $(call import.METAL,HB))
+
+HB.d = $(foreach n,$(HB.prerequisites),$($n.INSTALL.target))
+
+HB.src/   = $(SRC/)
+HB.build/ = $(BUILD/)
+
+HB.SETUP.stamp     = $(HB.build/)compile_commands.json
+HB.CONFIGURE.stamp = $(HB.build/)build.ninja
+
+HB.CONFIGURE.exe   = $(MESON.exe)
+HB.CONFIGURE.extra = -Dc_args="$(call fn.ARGS,HB.GCC,*D ?extra)" \
+                     -Dcpp_link_args="$(call fn.ARGS,HB.GCC,?extra.exe) $(HB.CONFIGURE.libdirs)" \
+                     --pkg-config-path=$(call fn.ABSOLUTE,$(BUILD/))contrib/lib/pkgconfig:$(PKG_CONFIG_PATH) \
+                     --prefix=$(PREFIX)
+HB.CONFIGURE.env   = CC="$(GCC.gcc)" CXX="$(GCC.gxx)" OBJC="$(GCC.gcc)"
+
+###############################################################################
+
+HB.out += $(HB.CONFIGURE.stamp)
+
+BUILD.out += $(HB.out)
+
+###############################################################################
+
+ifneq (none,$(HB.GCC.g))
+    HB.CONFIGURE.extra += -Ddebug=true
+else
+    HB.CONFIGURE.extra += -Ddebug=false
+endif
+
+ifeq (speed,$(HB.GCC.O))
+    ifeq (none,$HB.GCC.g)
+        HB.CONFIGURE.extra += -Doptimization=3
+    else
+        HB.CONFIGURE.extra += -Doptimization=2
+    endif
+else
+    ifneq (,$(filter $(HB.GCC.O),size size-aggressive))
+        HB.CONFIGURE.extra += -Doptimization=s
+    else
+        HB.CONFIGURE.extra += -Doptimization=0
+    endif
+endif
+
+ifeq (on,$(GCC.lto))
+    HB.CONFIGURE.extra += -Db_lto=true
+else
+    HB.CONFIGURE.extra += -Db_lto=false
+endif
+
+ifeq (1,$(FEATURE.fdk_aac))
+    HB.CONFIGURE.extra += -Dfdk-aac=enabled
+else
+    HB.CONFIGURE.extra += -Dfdk-aac=disabled
+endif
+
+ifeq (1,$(FEATURE.x265))
+    HB.CONFIGURE.extra += -Dx265=enabled
+else
+    HB.CONFIGURE.extra += -Dx265=disabled
+endif
+
+ifeq (1,$(FEATURE.numa))
+    HB.CONFIGURE.extra += -Dnuma=enabled
+else
+    HB.CONFIGURE.extra += -Dnuma=disabled
+endif
+
+ifeq (1,$(FEATURE.qsv))
+    HB.CONFIGURE.extra += -Dqsv=enabled
+else
+    HB.CONFIGURE.extra += -Dqsv=disabled
+endif
+
+ifeq (1,$(FEATURE.libdovi))
+    HB.CONFIGURE.extra += -Dlibdovi=enabled
+else
+    HB.CONFIGURE.extra += -Dlibdovi=disabled
+endif
+
+ifeq (1,$(FEATURE.flatpak))
+    HB.CONFIGURE.extra += -Dflatpak=true
+else
+    HB.CONFIGURE.extra += -Dflatpak=false
+endif
+
+ifeq (1,$(FEATURE.gtk))
+    HB.CONFIGURE.extra += -Dgtk=enabled
+else
+    HB.CONFIGURE.extra += -Dgtk=disabled
+endif
+
+ifneq (,$(filter $(HOST.system),freebsd netbsd openbsd))
+    HB.CONFIGURE.libdirs = -L$(LOCALBASE)/lib
+endif
+
+ifeq (mingw,$(HOST.system))
+    HB.CONFIGURE.extra += -Dprefer_static=true
+endif
+
+ifeq (1,$(HOST.cross))
+    HB.CONFIGURE.cross = --cross-file=$(SRC/)make/cross/$(HOST.spec).meson
+endif
+
+ifneq (-,$(V)-$(VERBOSE))
+    HB.BUILD.extra     = -v
+endif
+
+export HB.version HB.repo.date

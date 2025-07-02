@@ -6,5 +6,7 @@ icons = gnome.compile_resources('icon_res', 'icon_res.gresource.xml',
 
 if host_machine.system() not in ['windows', 'haiku']
   install_data('scalable/apps/fr.handbrake.ghb.svg',
-    install_dir: get_option('datadir') / 'icons/hicolor/scalable/apps')
+    install_dir: get_option('datadir') / 'icons/hicolor/scalable/apps',
+    install_tag: 'runtime',
+  )
 endif

@@ -10,12 +10,13 @@ desktop = i18n.merge_file(
   output: 'fr.handbrake.ghb.desktop',
   install: host_machine.system() not in ['windows', 'haiku'],
   install_dir: get_option('datadir') / 'applications',
+  install_tag: 'runtime',
   po_dir: po_dir,
   type: 'desktop')
 
 metainfo_conf = configuration_data()
 metainfo_conf.set('RELEASE_TAG', meson.project_version())
-metainfo_conf.set('RELEASE_DATE', run_command('version.py', 'date', check: true).stdout().strip())
+metainfo_conf.set('RELEASE_DATE', run_command('../../scripts/version.py', 'date', check: true).stdout().strip())
 
 metainfo_in = configure_file(
   input: 'fr.handbrake.ghb.metainfo.xml.in.in',
@@ -27,6 +28,7 @@ metainfo = i18n.merge_file(
   output: 'fr.handbrake.ghb.metainfo.xml',
   install: host_machine.system() not in ['windows', 'haiku'],
   install_dir: get_option('datadir') / 'metainfo',
+  install_tag: 'runtime',
   po_dir: po_dir,
   type: 'xml')
 
