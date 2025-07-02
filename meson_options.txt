@@ -1,0 +1,69 @@
+option('asm',
+       type: 'boolean',
+       value: true,
+       description: 'Enable ASM compilation')
+
+option('fdk-aac',
+       type: 'feature',
+       value: 'disabled',
+       description: 'FDK AAC encoder')
+
+option('flatpak',
+       type: 'boolean',
+       value: false,
+       description: 'Enable Flatpak packaging')
+
+option('gtk',
+       type: 'feature',
+       value: 'enabled',
+       description: 'Enable the GTK GUI')
+
+option('harden',
+       type: 'boolean',
+       value: true,
+       description: 'Protect against buffer overflows')
+
+option('libdovi',
+       type: 'feature',
+       value: 'disabled',
+       description: 'Enable libdovi for Dolby Vision support')
+
+option('mf',
+       type: 'feature',
+       value: 'disabled',
+       description: 'MediaFoundation encoder')
+
+option('numa',
+       type: 'feature',
+       value: 'enabled',
+       description: 'x265 NUMA support')
+
+option('nvdec',
+       type: 'feature',
+       value: 'disabled',
+       description: 'Nvidia NVDEC support')
+
+option('nvenc',
+       type: 'feature',
+       value: 'disabled',
+       description: 'Nvidia NVENC support')
+
+option('qsv',
+       type: 'feature',
+       value: 'disabled',
+       description: 'Intel QSV support')
+
+option('sandbox',
+       type: 'boolean',
+       value: true,
+       description: 'Limit host system access (macOS only)')
+
+option('vcn',
+       type: 'feature',
+       value: 'disabled',
+       description: 'AMD VCN support')
+
+option('x265',
+       type: 'feature',
+       value: 'enabled',
+       description: 'Enable the x265 encoder')
