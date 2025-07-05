@@ -23,11 +23,11 @@ HB.SETUP.stamp     = $(HB.build/)compile_commands.json
 HB.CONFIGURE.stamp = $(HB.build/)build.ninja
 
 HB.CONFIGURE.exe   = $(MESON.exe)
-HB.CONFIGURE.extra = -Dc_args="$(call fn.ARGS,HB.GCC,*D ?extra)" \
-                     -Dcpp_link_args="$(call fn.ARGS,HB.GCC,?extra.exe) $(HB.CONFIGURE.libdirs)" \
+HB.CONFIGURE.extra = -Dc_args="$(call fn.ARGS,HB.GCC,*D *archs *sysroot *minver ?extra)" \
+                     -Dcpp_link_args="$(call fn.ARGS,HB.GCC, *archs *sysroot *minver ?extra.exe) $(HB.CONFIGURE.libdirs)" \
                      --pkg-config-path=$(call fn.ABSOLUTE,$(BUILD/))contrib/lib/pkgconfig:$(PKG_CONFIG_PATH) \
                      --prefix=$(PREFIX)
-HB.CONFIGURE.env   = CC="$(GCC.gcc)" CXX="$(GCC.gxx)" OBJC="$(GCC.gcc)"
+HB.CONFIGURE.env   = CC="$(GCC.gcc)" CXX="$(GCC.gxx)"
 
 ###############################################################################
 
@@ -113,8 +113,17 @@ ifeq (mingw,$(HOST.system))
     HB.CONFIGURE.extra += -Dprefer_static=true
 endif
 
+ifeq (darwin,$(HOST.system))
+    HB.CONFIGURE.extra += -Dobjc_args="$(call fn.ARGS,HB.GCC,*D *archs *sysroot *minver ?extra)"
+    HB.CONFIGURE.env   += OBJC="$(GCC.gcc)"
+endif
+
 ifeq (1,$(HOST.cross))
-    HB.CONFIGURE.cross = --cross-file=$(SRC/)make/cross/$(HOST.spec).meson
+    ifeq (darwin,$(HOST.system))
+        HB.CONFIGURE.cross = --cross-file=$(SRC/)make/cross/$(HOST.machine)-darwin-gcc.meson
+    else
+        HB.CONFIGURE.cross = --cross-file=$(SRC/)make/cross/$(HOST.spec).meson
+    endif
 endif
 
 ifneq (-,$(V)-$(VERBOSE))
