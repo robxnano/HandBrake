@@ -2,10 +2,15 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 add_languages('objc', native: false)
+hb_deps += dependency('appleframeworks', modules: [
+  'IOKit', 'CoreServices', 'CoreText', 'CoreGraphics', 'AudioToolbox',
+  'VideoToolbox', 'CoreMedia', 'CoreVideo', 'IOSurface', 'Foundation',
+  'DiskArbitration', 'Metal'])
 xcrun = find_program('xcrun')
 bin2c = find_program(meson.project_build_root() / 'bin2c')
 
 libhb_src += files(
+  'blend_vt.m',
   'chroma_smooth_vt.m',
   'comb_detect_vt.m',
   'config.m',

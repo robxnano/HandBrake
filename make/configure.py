@@ -1238,7 +1238,7 @@ class ConfigDocument:
                 continue
 
             if type == 'm4':
-                self._outputM4( out_file, item[0], item[1] )
+                self._outputM4( out_file, namelen, item[0], item[1] )
             elif type == 'config':
                 self._outputConfig( out_file, item[0], item[1] )
             else:
@@ -2205,6 +2205,7 @@ int main()
 
     ## perform
     doc.write( 'make' )
+    doc.write( 'm4' )
     doc.write( 'config' )
     encodeDistfileConfig()
 

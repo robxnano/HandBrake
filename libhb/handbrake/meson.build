@@ -56,3 +56,7 @@ conf.set('HB_PROJECT_SECURITY_HARDEN', get_option('harden').to_int())
 project_h = configure_file(configuration: conf, output: 'project.h')
 
 libhb_src += project_h
+
+if host_machine.system() == 'darwin'
+  run_command('sh', '-c', 'cp *.h ' + meson.current_build_dir(), check: true)
+endif

@@ -23,11 +23,11 @@ APP.SETUP.stamp     = $(APP.build/)compile_commands.json
 APP.CONFIGURE.stamp = $(APP.build/)build.ninja
 
 APP.CONFIGURE.exe   = $(MESON.exe)
-APP.CONFIGURE.extra = -Dc_args="$(call fn.ARGS,APP.GCC,*D ?extra)" \
-                      -Dcpp_link_args="$(call fn.ARGS,APP.GCC,?extra.exe) $(APP.CONFIGURE.libdirs)" \
-                      --pkg-config-path=$(call fn.ABSOLUTE,$(BUILD/))contrib/lib/pkgconfig:$(PKG_CONFIG_PATH) \
-                      --prefix=$(PREFIX)
-APP.CONFIGURE.env   = CC="$(GCC.gcc)" CXX="$(GCC.gxx)" OBJC="$(GCC.gcc)"
+APP.CONFIGURE.extra = -Dc_args="$(call fn.ARGS,APP.GCC,*D *archs *sysroot *minver ?extra)" \
+                     -Dcpp_link_args="$(call fn.ARGS,APP.GCC, *archs *sysroot *minver ?extra.exe) $(APP.CONFIGURE.libdirs)" \
+                     --pkg-config-path=$(call fn.ABSOLUTE,$(BUILD/))contrib/lib/pkgconfig:$(PKG_CONFIG_PATH) \
+                     --prefix=$(PREFIX)
+APP.CONFIGURE.env   = CC="$(GCC.gcc)" CXX="$(GCC.gxx)"
 
 ###############################################################################
 
@@ -113,8 +113,17 @@ ifeq (mingw,$(HOST.system))
     APP.CONFIGURE.extra += -Dprefer_static=true
 endif
 
+ifeq (darwin,$(HOST.system))
+    APP.CONFIGURE.extra += -Dobjc_args="$(call fn.ARGS,APP.GCC,*D *archs *sysroot *minver ?extra)"
+    APP.CONFIGURE.env   += OBJC="$(GCC.gcc)"
+endif
+
 ifeq (1,$(HOST.cross))
-    APP.CONFIGURE.cross = --cross-file=$(SRC/)make/cross/$(HOST.spec).meson
+    ifeq (darwin,$(HOST.system))
+        APP.CONFIGURE.cross = --cross-file=$(SRC/)make/cross/$(HOST.machine)-darwin-gcc.meson
+    else
+        APP.CONFIGURE.cross = --cross-file=$(SRC/)make/cross/$(HOST.spec).meson
+    endif
 endif
 
 ifneq (-,$(V)-$(VERBOSE))
