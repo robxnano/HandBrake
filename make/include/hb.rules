@@ -1,0 +1,42 @@
+$(eval $(call import.MODULE.rules,HB))
+
+build: hb.build
+install: hb.install
+install-strip: hb.install-strip
+uninstall: hb.uninstall
+clean: hb.clean
+xclean: hb.xclean
+
+hb.configure: $(HB.CONFIGURE.stamp)
+
+$(HB.CONFIGURE.stamp): | $(HB.d) $(BUILD/)GNUmakefile
+	$(CMAKE.exe) -B $(call fn.ABSOLUTE,$(HB.build/)) -S $(call fn.ABSOLUTE,$(HB.src/)) \
+		$(HB.CONFIGURE.init) $(HB.CONFIGURE.extra) $(HB.CONFIGURE.cross)
+
+hb.reconfigure: | $(HB.CONFIGURE.stamp) $(HB.d) $(BUILD/)GNUmakefile
+	-$(RM.exe) $(HB.CONFIGURE.stamp)
+	$(CMAKE.exe) -B $(call fn.ABSOLUTE,$(HB.build/)) -S $(call fn.ABSOLUTE,$(HB.src/)) \
+		$(HB.CONFIGURE.init) $(HB.CONFIGURE.extra) $(HB.CONFIGURE.cross)
+
+hb.build: | $(HB.CONFIGURE.stamp)
+	+$(CMAKE.exe) --build $(call fn.ABSOLUTE,$(HB.build/)) $(HB.BUILD.extra)
+
+hb.test: hb.build
+	$(NINJA.exe) test $(HB.BUILD.extra)
+
+hb.install-strip: hb.build
+	$(CMAKE.exe) --install $(call fn.ABSOLUTE,$(HB.build/)) --strip
+
+hb.install: hb.build
+	$(CMAKE.exe) --install $(call fn.ABSOLUTE,$(HB.build/))
+
+hb.uninstall:
+	$(CMAKE.exe) --build $(call fn.ABSOLUTE,$(HB.build/)) --target uninstall
+
+hb.clean:
+	-$(CMAKE.exe) --build $(call fn.ABSOLUTE,$(HB.build/)) --target clean
+
+hb.xclean: hb.clean
+	-$(RM.exe) -r $(call fn.ABSOLUTE,$(HB.build/))CMakeFiles
+	-$(RM.exe) $(call fn.ABSOLUTE,$(HB.build/))cmake_install.cmake
+	-$(RM.exe) $(HB.CONFIGURE.stamp)

@@ -1,0 +1,107 @@
+__deps__ := BZIP2 LIBVPX SVT-AV1 FFMPEG FREETYPE LAME LIBASS \
+    LIBDVDREAD LIBDVDNAV LIBICONV LIBTHEORA LIBVORBIS LIBOGG \
+    X264 X265 ZLIB LIBBLURAY FDKAAC LIBVPL LIBGNURX JANSSON \
+    HARFBUZZ LIBOPUS LIBSPEEX LIBDAV1D LIBJPEGTURBO LIBDOVI
+
+ifeq (,$(filter $(HOST.system),darwin cygwin mingw))
+    __deps__ += FONTCONFIG
+endif
+ifeq (netbsd,$(HOST.system))
+    __deps__ += LIBJPEGTURBO
+endif
+
+$(eval $(call import.MODULE.defs,HB,hb,$(__deps__)))
+$(eval $(call import.GCC,HB))
+$(eval $(call import.METAL,HB))
+
+HB.d = $(foreach n,$(HB.prerequisites),$($n.INSTALL.target))
+
+HB.src/   = $(SRC/)make
+HB.build/ = $(BUILD/)
+
+HB.SETUP.stamp     = $(HB.build/)compile_commands.json
+HB.CONFIGURE.stamp = $(HB.build/)CMakeCache.txt
+
+HB.CONFIGURE.exe   = $(CMAKE.exe)
+HB.CONFIGURE.extra = -DCMAKE_C_FLAGS="$(call fn.ARGS,HB.GCC,*D ?extra)" \
+                     -DCMAKE_EXE_LINKER_FLAGS="$(call fn.ARGS,HB.GCC,?extra.exe) $(HB.CONFIGURE.libdirs)" \
+                     -DCMAKE_PREFIX_PATH="$(call fn.ABSOLUTE,$(BUILD/))contrib" -G Ninja
+HB.CONFIGURE.init  = -DCMAKE_C_COMPILER="$(GCC.gcc)" -DCMAKE_CXX_COMPILER="$(GCC.gxx)"
+
+###############################################################################
+
+HB.out += $(HB.CONFIGURE.stamp)
+
+BUILD.out += $(HB.out)
+
+###############################################################################
+
+ifneq (none,$(HB.GCC.g))
+    ifeq (none,$(HB.GCC.O))
+        HB.CONFIGURE.extra += -DCMAKE_BUILD_TYPE=Debug
+    else
+        HB.CONFIGURE.extra += -DCMAKE_BUILD_TYPE=RelWithDebInfo
+    endif
+else
+    HB.CONFIGURE.extra += -DCMAKE_BUILD_TYPE=Release
+endif
+
+ifeq (on,$(GCC.lto))
+    HB.CONFIGURE.extra += -DCMAKE_INTERPROCEDURAL_OPTIMIZATION=ON
+else
+    HB.CONFIGURE.extra += -DCMAKE_INTERPROCEDURAL_OPTIMIZATION=OFF
+endif
+
+ifeq (1,$(FEATURE.fdk_aac))
+    HB.CONFIGURE.extra += -DENABLE_FDK_AAC=ON
+else
+    HB.CONFIGURE.extra += -DENABLE_FDK_AAC=OFF
+endif
+
+ifeq (1,$(FEATURE.x265))
+    HB.CONFIGURE.extra += -DENABLE_X265=ON
+else
+    HB.CONFIGURE.extra += -DENABLE_X265=OFF
+endif
+
+ifeq (1,$(FEATURE.numa))
+    HB.CONFIGURE.extra += -DENABLE_NUMA=ON
+else
+    HB.CONFIGURE.extra += -DENABLE_NUMA=OFF
+endif
+
+ifeq (1,$(FEATURE.qsv))
+    HB.CONFIGURE.extra += -DENABLE_QSV=ON
+else
+    HB.CONFIGURE.extra += -DENABLE_QSV=OFF
+endif
+
+ifeq (1,$(FEATURE.libdovi))
+    HB.CONFIGURE.extra += -DENABLE_LIBDOVI=ON
+else
+    HB.CONFIGURE.extra += -DENABLE_LIBDOVI=OFF
+endif
+
+ifeq (1,$(FEATURE.gtk))
+    HB.CONFIGURE.extra += -DENABLE_GTK=ON
+else
+    HB.CONFIGURE.extra += -DENABLE_GTK=OFF
+endif
+
+ifneq (,$(filter $(HOST.system),freebsd netbsd openbsd))
+    HB.CONFIGURE.libdirs = -L$(LOCALBASE)/lib
+endif
+
+ifeq (mingw,$(HOST.system))
+    HB.CONFIGURE.extra += -Dprefer_static=true
+endif
+
+ifeq (1,$(HOST.cross))
+    HB.CONFIGURE.cross = --cross-file=$(SRC/)make/cross/$(HOST.spec).meson
+endif
+
+ifneq (-,$(V)-$(VERBOSE))
+    HB.BUILD.extra     = -v
+endif
+
+export HB.version HB.repo.date
