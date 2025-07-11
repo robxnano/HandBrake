@@ -3,6 +3,10 @@
 <component type="desktop-application">
   <id>fr.handbrake.ghb</id>
   <translation type="gettext">ghb</translation>
+  <developer id="fr.handbrake">
+    <name>HandBrake Team</name>
+  </developer>
+  <!-- developer_name is deprecated -->
   <developer_name>HandBrake Team</developer_name>
   <update_contact>jstebbins.hb_AT_gmail.com</update_contact>
   <launchable type="desktop-id">fr.handbrake.ghb.desktop</launchable>
