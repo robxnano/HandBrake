@@ -1167,16 +1167,20 @@ class VersionProbe( Action ):
 
 ###############################################################################
 ##
-## config object used to output gnu-make or gnu-m4 output.
+## config object used to output gnu-make or cmake output.
 ##
-## - add() to add NAME/VALUE pairs suitable for both make/m4.
-## - addBlank() to add a linefeed for both make/m4.
+## - add() to add NAME/VALUE pairs suitable for both make/cmake.
+## - addBlank() to add a linefeed for both make/cmake.
 ## - addMake() to add a make-specific line.
-## - addM4() to add a m4-specific line.
+## - addCMake() to add a cmake-specific line.
 ##
 class ConfigDocument:
     def __init__( self ):
         self._elements = []
+
+    def _outputCMake( self, out_file, name, value ):
+        name = name.replace('.', '_')
+        out_file.write( 'set(%s "%s")\n' % (name, value ))
 
     def _outputMake( self, out_file, namelen, name, value, append ):
         if append:
@@ -1190,11 +1194,6 @@ class ConfigDocument:
             else:
                 out_file.write( '%-*s  = %s\n' % (namelen, name, value) )
 
-    def _outputM4( self, out_file, namelen, name, value ):
-        namelen += 7
-        name = '<<__%s>>,' % name.replace( '.', '_' )
-        out_file.write( 'define(%-*s  <<%s>>)dnl\n' % (namelen, name, value ))
-
     def add( self, name, value, append=False ):
         self._elements.append( [name,value,append] )
 
@@ -1202,14 +1201,14 @@ class ConfigDocument:
         self._elements.append( None )
 
     def addComment( self, format, *args ):
+        self.addCMake( '# ' + format % args )
         self.addMake( '## ' + format % args )
-        self.addM4( 'dnl ' + format % args )
+
+    def addCMake( self, line ):
+        self._elements.append( ('?cmake',line) )
 
     def addMake( self, line ):
         self._elements.append( ('?make',line) )
-
-    def addM4( self, line ):
-        self._elements.append( ('?m4',line) )
 
     def output( self, out_file, type ):
         namelen = 0
@@ -1220,18 +1219,15 @@ class ConfigDocument:
                 namelen = len(item[0])
         for item in self._elements:
             if item == None:
-                if type == 'm4':
-                    out_file.write( 'dnl\n' )
-                else:
-                    out_file.write( '\n' )
+                out_file.write( '\n' )
                 continue
             if item[0].find( '?' ) == 0:
                 if item[0].find( type, 1 ) == 1:
                     out_file.write( '%s\n' % (item[1]) )
                 continue
 
-            if type == 'm4':
-                self._outputM4( out_file, namelen, item[0], item[1] )
+            if type == 'cmake':
+                self._outputCMake( out_file, item[0], item[1] )
             else:
                 self._outputMake( out_file, namelen, item[0], item[1], item[2] )
 
@@ -1247,8 +1243,8 @@ class ConfigDocument:
     def write( self, type ):
         if type == 'make':
             fname = 'GNUmakefile'
-        elif type == 'm4':
-            fname = os.path.join( 'project', project.name_lower + '.m4' )
+        elif type == 'cmake':
+            fname = 'hb_options.cmake'
         else:
             raise ValueError('unknown file type: ' + type)
 
@@ -1683,7 +1679,7 @@ try:
         libtool    = ToolProbe( 'LIBTOOL.exe',    'libtool',    'libtool', abort=True )
         lipo       = ToolProbe( 'LIPO.exe',       'lipo',       'lipo', abort=False )
         pkgconfig  = ToolProbe( 'PKGCONFIG.exe',  'pkgconfig',  'pkg-config', abort=True, minversion=[0,27,0] )
-        meson      = ToolProbe( 'MESON.exe',      'meson',      'meson', abort=True, minversion=[0,51,0] )
+        meson      = ToolProbe( 'MESON.exe',      'meson',      'meson', abort=True, minversion=[0,56,0] )
         nasm       = ToolProbe( 'NASM.exe',       'asm',        'nasm', abort=True, minversion=[2,13,0] )
         ninja      = ToolProbe( 'NINJA.exe',      'ninja',      'ninja-build', 'ninja', abort=True )
         cargo      = ToolProbe( 'CARGO.exe',      'cargo',        'cargo', abort=False )
@@ -2194,7 +2190,7 @@ int main()
 
     ## perform
     doc.write( 'make' )
-    doc.write( 'm4' )
+    doc.write( 'cmake' )
     encodeDistfileConfig()
 
     note_required    = ' (required on target platform)'
