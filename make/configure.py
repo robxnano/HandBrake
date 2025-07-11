@@ -1178,6 +1178,10 @@ class ConfigDocument:
     def __init__( self ):
         self._elements = []
 
+    def _outputCMake( self, out_file, name, value ):
+        name = name.replace('.', '_')
+        out_file.write( 'set(%s "%s")\n' % (name, value ))
+
     def _outputMake( self, out_file, namelen, name, value, append ):
         if append:
             if value == None or len(str(value)) == 0:
@@ -1202,8 +1206,12 @@ class ConfigDocument:
         self._elements.append( None )
 
     def addComment( self, format, *args ):
+        self.addCMake( '# ' + format % args )
         self.addMake( '## ' + format % args )
         self.addM4( 'dnl ' + format % args )
+
+    def addCMake( self, line ):
+        self._elements.append( ('?cmake',line) )
 
     def addMake( self, line ):
         self._elements.append( ('?make',line) )
@@ -1222,7 +1230,7 @@ class ConfigDocument:
             if item == None:
                 if type == 'm4':
                     out_file.write( 'dnl\n' )
-                else:
+                elif type in ['make', 'cmake']:
                     out_file.write( '\n' )
                 continue
             if item[0].find( '?' ) == 0:
@@ -1232,6 +1240,8 @@ class ConfigDocument:
 
             if type == 'm4':
                 self._outputM4( out_file, namelen, item[0], item[1] )
+            elif type == 'cmake':
+                self._outputCMake( out_file, item[0], item[1] )
             else:
                 self._outputMake( out_file, namelen, item[0], item[1], item[2] )
 
@@ -1249,6 +1259,8 @@ class ConfigDocument:
             fname = 'GNUmakefile'
         elif type == 'm4':
             fname = os.path.join( 'project', project.name_lower + '.m4' )
+        elif type == 'cmake':
+            fname = 'hb_options.cmake'
         else:
             raise ValueError('unknown file type: ' + type)
 
@@ -1683,7 +1695,7 @@ try:
         libtool    = ToolProbe( 'LIBTOOL.exe',    'libtool',    'libtool', abort=True )
         lipo       = ToolProbe( 'LIPO.exe',       'lipo',       'lipo', abort=False )
         pkgconfig  = ToolProbe( 'PKGCONFIG.exe',  'pkgconfig',  'pkg-config', abort=True, minversion=[0,27,0] )
-        meson      = ToolProbe( 'MESON.exe',      'meson',      'meson', abort=True, minversion=[0,51,0] )
+        meson      = ToolProbe( 'MESON.exe',      'meson',      'meson', abort=True, minversion=[0,56,0] )
         nasm       = ToolProbe( 'NASM.exe',       'asm',        'nasm', abort=True, minversion=[2,13,0] )
         ninja      = ToolProbe( 'NINJA.exe',      'ninja',      'ninja-build', 'ninja', abort=True )
         cargo      = ToolProbe( 'CARGO.exe',      'cargo',        'cargo', abort=False )
@@ -2195,6 +2207,7 @@ int main()
     ## perform
     doc.write( 'make' )
     doc.write( 'm4' )
+    doc.write( 'cmake' )
     encodeDistfileConfig()
 
     note_required    = ' (required on target platform)'
