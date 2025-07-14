@@ -50,6 +50,8 @@ jobs:
         cargo install cargo-c
 
     - name: Build HandBrake
+      env:
+        VERBOSE: 1
       run: |
         ./configure
         cd build
