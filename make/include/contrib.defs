@@ -222,15 +222,22 @@ endif
     ## target: build
     ##
     $(1).BUILD.env      =
+    $(1).BUILD.extra    =
 ifeq (cmake,$(2))
     $(1).BUILD.make     = +$$(CMAKE.exe)
+    ifneq (,$(V)$(VERBOSE))
+        $(1).BUILD.extra += -v
+    endif
 else ifeq (meson,$(2))
     $(1).BUILD.make     = +$$(MESON.exe)
+    ifneq (,$(V)$(VERBOSE))
+        $(1).BUILD.extra += -v
+    endif
 else
     $(1).BUILD.make     = $$(MAKE)
 endif
     $(1).BUILD.dir      = $$($(1).EXTRACT.dir/)$$($(1).build_dir)
-    $(1).BUILD.extra    =
+
     $(1).BUILD.ntargets =
 
     $(1).BUILD.args = !env !make @dir !extra !ntargets

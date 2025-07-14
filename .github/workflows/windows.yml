@@ -40,6 +40,8 @@ jobs:
         cargo install cargo-c
 
     - name: Build CLI and LibHB
+      env:
+        VERBOSE: 1
       run: |
         export PATH="/home/runner/work/HandBrake/HandBrake/toolchains/llvm-mingw-20250319-msvcrt-ubuntu-20.04-x86_64/bin:${PATH}"
         export PATH=/usr/bin:$PATH
@@ -108,6 +110,8 @@ jobs:
         cargo install cargo-c
 
     - name: Build CLI and LibHB
+      env:
+        VERBOSE: 1
       run: |
         export PATH="/home/runner/work/HandBrake/HandBrake/toolchains/mingw-w64-toolchain-10.0.0-msvcrt-linux-x86_64/mingw-w64-x86_64/bin:${PATH}"
         export PATH=/usr/bin:$PATH
