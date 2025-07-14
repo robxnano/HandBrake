@@ -1,30 +1,21 @@
 __deps__ := FREETYPE
 
 $(eval $(call import.MODULE.defs,HARFBUZZ,harfbuzz,$(__deps__)))
-$(eval $(call import.CONTRIB.defs,HARFBUZZ,cmake))
+$(eval $(call import.CONTRIB.defs,HARFBUZZ,meson))
 
 HARFBUZZ.FETCH.url     = https://github.com/HandBrake/HandBrake-contribs/releases/download/contribs2/harfbuzz-11.2.1.tar.xz
 HARFBUZZ.FETCH.url    += https://github.com/harfbuzz/harfbuzz/releases/download/11.2.1/harfbuzz-11.2.1.tar.xz
 HARFBUZZ.FETCH.sha256  = 093714c8548a285094685f0bdc999e202d666b59eeb3df2ff921ab68b8336a49
 
-HARFBUZZ.build_dir             = build
-HARFBUZZ.CONFIGURE.extra       = -DHB_BUILD_UTILS=OFF -DHB_BUILD_TESTS=OFF -DHB_HAVE_FREETYPE=ON \
-                                 -DFREETYPE_LIBRARIES="$(call fn.ABSOLUTE,$(CONTRIB.build/))lib" \
-                                 -DFREETYPE_INCLUDE_DIRS="$(call fn.ABSOLUTE,$(CONTRIB.build/))include/freetype2" \
-                                 -DFREETYPE_INCLUDE_DIR_freetype2="$(call fn.ABSOLUTE,$(CONTRIB.build/))include/freetype2" \
-                                 -DFREETYPE_INCLUDE_DIR_ft2build="$(call fn.ABSOLUTE,$(CONTRIB.build/))include/freetype2"
+HARFBUZZ.build_dir     = build
 
-HARFBUZZ.GCC.args.extra += $(HARFBUZZ.GCC.args.O.$(HARFBUZZ.GCC.O))
+HARFBUZZ.CONFIGURE.extra += -Dutilities=disabled -Dtests=disabled -Dfreetype=enabled
 
 ifeq (mingw,$(HOST.system))
-    HARFBUZZ.CONFIGURE.extra += -DHB_HAVE_DIRECTWRITE=OFF \
-                                -DHB_HAVE_GLIB=OFF \
-                                -DHB_HAVE_GOBJECT=OFF \
-                                -DHB_HAVE_GRAPHITE2=OFF \
-                                -DHB_HAVE_ICU=OFF \
-                                -DHB_HAVE_UNISCRIBE=OFF
+    HARFBUZZ.CONFIGURE.extra += -Ddirectwrite=disabled -Dglib=disabled -Dgobject=disabled \
+                                -Dgraphite=disabled -Dicu=disabled
 endif
 
 ifeq ($(HOST.system),darwin)
-    HARFBUZZ.CONFIGURE.extra += -DHB_HAVE_CORETEXT=OFF -DHB_HAVE_GLIB=OFF
+    HARFBUZZ.CONFIGURE.extra += -Dcoretext=disabled -Dglib=disabled
 endif
