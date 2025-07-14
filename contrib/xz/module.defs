@@ -1,16 +1,17 @@
 $(eval $(call import.MODULE.defs,XZ,xz))
-$(eval $(call import.CONTRIB.defs,XZ))
+$(eval $(call import.CONTRIB.defs,XZ,cmake))
 
 XZ.FETCH.url     = https://github.com/HandBrake/HandBrake-contribs/releases/download/contribs2/xz-5.8.1.tar.bz2
 XZ.FETCH.url    += https://tukaani.org/xz/xz-5.8.1.tar.bz2
 XZ.FETCH.sha256  = 5965c692c4c8800cd4b33ce6d0f6ac9ac9d6ab227b17c512b6561bce4f08d47e
 
-XZ.CONFIGURE.extra = \
-    --disable-xz \
-    --disable-xzdec \
-    --disable-lzmadec \
-    --disable-lzmainfo \
-    --disable-scripts \
-    --disable-doc
+XZ.build_dir     = build
 
-XZ.GCC.args.extra += $(XZ.GCC.args.O.$(XZ.GCC.O))
+XZ.CONFIGURE.extra += \
+    -DBUILD_TESTING=OFF \
+    -DXZ_TOOL_XZ=OFF \
+    -DXZ_TOOL_XZDEC=OFF \
+    -DXZ_TOOL_LZMADEC=OFF \
+    -DXZ_TOOL_LZMAINFO=OFF \
+    -DXZ_TOOL_SCRIPTS=OFF \
+    -DXZ_DOC=OFF
