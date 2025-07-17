@@ -1167,16 +1167,20 @@ class VersionProbe( Action ):
 
 ###############################################################################
 ##
-## config object used to output gnu-make or gnu-m4 output.
+## config object used to output gnu-make or cmake output.
 ##
-## - add() to add NAME/VALUE pairs suitable for both make/m4.
-## - addBlank() to add a linefeed for both make/m4.
+## - add() to add NAME/VALUE pairs suitable for both make/cmake.
+## - addBlank() to add a linefeed for both make/cmake.
 ## - addMake() to add a make-specific line.
-## - addM4() to add a m4-specific line.
+## - addCMake() to add a cmake-specific line.
 ##
 class ConfigDocument:
     def __init__( self ):
         self._elements = []
+
+    def _outputCMake( self, out_file, name, value ):
+        name = name.replace('.', '_')
+        out_file.write( 'set(%s "%s")\n' % (name, value ))
 
     def _outputMake( self, out_file, namelen, name, value, append ):
         if append:
@@ -1190,11 +1194,6 @@ class ConfigDocument:
             else:
                 out_file.write( '%-*s  = %s\n' % (namelen, name, value) )
 
-    def _outputM4( self, out_file, namelen, name, value ):
-        namelen += 7
-        name = '<<__%s>>,' % name.replace( '.', '_' )
-        out_file.write( 'define(%-*s  <<%s>>)dnl\n' % (namelen, name, value ))
-
     def add( self, name, value, append=False ):
         self._elements.append( [name,value,append] )
 
@@ -1202,14 +1201,14 @@ class ConfigDocument:
         self._elements.append( None )
 
     def addComment( self, format, *args ):
+        self.addCMake( '# ' + format % args )
         self.addMake( '## ' + format % args )
-        self.addM4( 'dnl ' + format % args )
+
+    def addCMake( self, line ):
+        self._elements.append( ('?cmake',line) )
 
     def addMake( self, line ):
         self._elements.append( ('?make',line) )
-
-    def addM4( self, line ):
-        self._elements.append( ('?m4',line) )
 
     def output( self, out_file, type ):
         namelen = 0
@@ -1220,18 +1219,15 @@ class ConfigDocument:
                 namelen = len(item[0])
         for item in self._elements:
             if item == None:
-                if type == 'm4':
-                    out_file.write( 'dnl\n' )
-                else:
-                    out_file.write( '\n' )
+                out_file.write( '\n' )
                 continue
             if item[0].find( '?' ) == 0:
                 if item[0].find( type, 1 ) == 1:
                     out_file.write( '%s\n' % (item[1]) )
                 continue
 
-            if type == 'm4':
-                self._outputM4( out_file, namelen, item[0], item[1] )
+            if type == 'cmake':
+                self._outputCMake( out_file, item[0], item[1] )
             else:
                 self._outputMake( out_file, namelen, item[0], item[1], item[2] )
 
@@ -1247,8 +1243,8 @@ class ConfigDocument:
     def write( self, type ):
         if type == 'make':
             fname = 'GNUmakefile'
-        elif type == 'm4':
-            fname = os.path.join( 'project', project.name_lower + '.m4' )
+        elif type == 'cmake':
+            fname = 'hb_options.cmake'
         else:
             raise ValueError('unknown file type: ' + type)
 
@@ -1680,7 +1676,7 @@ try:
         libtool    = ToolProbe( 'LIBTOOL.exe',    'libtool',    'libtool', abort=True )
         lipo       = ToolProbe( 'LIPO.exe',       'lipo',       'lipo', abort=False )
         pkgconfig  = ToolProbe( 'PKGCONFIG.exe',  'pkgconfig',  'pkg-config', abort=True, minversion=[0,27,0] )
-        meson      = ToolProbe( 'MESON.exe',      'meson',      'meson', abort=True, minversion=[0,51,0] )
+        meson      = ToolProbe( 'MESON.exe',      'meson',      'meson', abort=True, minversion=[0,56,0] )
         nasm       = ToolProbe( 'NASM.exe',       'asm',        'nasm', abort=True, minversion=[2,13,0] )
         ninja      = ToolProbe( 'NINJA.exe',      'ninja',      'ninja-build', 'ninja', abort=True )
         cargo      = ToolProbe( 'CARGO.exe',      'cargo',        'cargo', abort=False )
@@ -1791,44 +1787,6 @@ try:
     ## MinGW specific library and tool checks
     #########################################
     if host_tuple.system == 'mingw':
-        dlfcn_test = """
-#include <dlfcn.h>
-#include <stdio.h>
-
-void fnord() { int i=42;}
-int main ()
-{
-  void *self = dlopen (0, RTLD_GLOBAL|RTLD_NOW);
-  int status = 1;
-
-  if (self)
-    {
-      if (dlsym (self,"fnord"))       status = 0;
-      else if (dlsym( self,"_fnord")) status = 0;
-      /* dlclose (self); */
-    }
-  else
-    puts (dlerror ());
-
-  return status;
-}
-"""
-        dlfcn = LDProbe( 'static dlfcn', '%s -static' % Tools.gcc.pathname, '-ldl', dlfcn_test )
-        dlfcn.run()
-
-        pthread_test = """
-#include <stdio.h>
-#include <pthread.h>
-int main ()
-{
-  pthread_t thread;
-  pthread_create (&thread, NULL, NULL, NULL);
-  return 0;
-}
-"""
-        pthread = LDProbe( 'static pthread', '%s -static' % Tools.gcc.pathname, '-lpthread', pthread_test )
-        pthread.run()
-
         bz2_test = """
 #include <stdio.h>
 #include <bzlib.h>
@@ -1913,19 +1871,6 @@ int main()
         regex = LDProbe( 'static regex', '%s -static' % Tools.gcc.pathname, '-lregex', regex_test )
         regex.run()
 
-        strtok_r_test = """
-#include <string.h>
-
-int main ()
-{
-  char *saveptr;
-  strtok_r("String tok string", "tok", &saveptr);
-  return 0;
-}
-"""
-        strtok_r = LDProbe( 'static strtok_r', '%s -static' % Tools.gcc.pathname, '', strtok_r_test )
-        strtok_r.run()
-
     #########################################
     ## Linux specific library and tool checks
     #########################################
@@ -1944,26 +1889,6 @@ return 0;
             numa = ChkLib( 'numa', '%s' % Tools.gcc.pathname,
                            'numa', numa_test, abort=True )
             numa.run()
-
-    #########################################
-    ## Common library and tool checks
-    #########################################
-    strerror_r_test = """
-#include <string.h>
-
-int main()
-{
-    /* some implementations fail if buf is less than 80 characters
-       so size it appropriately */
-    char errstr[128];
-    /* some implementations fail if err == 0 */
-    strerror_r(1, errstr, 127);
-    return 0;
-}
-"""
-
-    strerror_r = LDProbe( 'strerror_r', '%s' % Tools.gcc.pathname, '', strerror_r_test )
-    strerror_r.run()
 
     #########################################
     ## Compiler option checks
@@ -2106,10 +2031,6 @@ int main()
 
     if host_tuple.system == 'mingw':
         doc.addBlank()
-        if not dlfcn.fail:
-            doc.add( 'HAS.dlfcn', 1 )
-        if not pthread.fail:
-            doc.add( 'HAS.pthread', 1 )
         if not bz2.fail:
             doc.add( 'HAS.bz2', 1 )
         if not libz.fail:
@@ -2120,15 +2041,6 @@ int main()
             doc.add( 'HAS.iconv', 1 )
         if not regex.fail:
             doc.add( 'HAS.regex', 1 )
-        if strtok_r.fail:
-            doc.add( 'COMPAT.strtok_r', 1 )
-
-    else:
-        doc.addBlank()
-        if host_tuple.system in ('freebsd', 'netbsd', 'openbsd'):
-            doc.add( 'HAS.pthread', 1 )
-        if not strerror_r.fail:
-            doc.add( 'HAS.strerror_r', 1 )
 
     doc.addMake( '' )
     doc.addMake( '## define these before other includes' )
@@ -2141,7 +2053,7 @@ int main()
     doc.addMake( '## include definitions' )
     doc.addMake( 'include $(SRC/)make/include/main.defs' )
 
-    doc.addBlank()
+    doc.addMake('')
     for tool in ToolProbe.tools:
         tool.doc_add( doc )
 
@@ -2185,7 +2097,7 @@ int main()
 
     ## perform
     doc.write( 'make' )
-    doc.write( 'm4' )
+    doc.write( 'cmake' )
     encodeDistfileConfig()
 
     note_required    = ' (required on target platform)'

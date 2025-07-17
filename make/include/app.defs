@@ -1,0 +1,76 @@
+__deps__ := BZIP2 LIBVPX SVT-AV1 FFMPEG FREETYPE LAME LIBASS \
+    LIBDVDREAD LIBDVDNAV LIBICONV LIBTHEORA LIBVORBIS LIBOGG \
+    X264 X265 ZLIB LIBBLURAY FDKAAC LIBVPL LIBGNURX JANSSON \
+    HARFBUZZ LIBOPUS LIBSPEEX LIBDAV1D LIBJPEGTURBO LIBDOVI
+
+ifeq (,$(filter $(HOST.system),darwin cygwin mingw))
+    __deps__ += FONTCONFIG
+endif
+
+$(eval $(call import.MODULE.defs,APP,app,$(__deps__)))
+$(eval $(call import.GCC,APP))
+$(eval $(call import.METAL,APP))
+
+APP.d = $(foreach n,$(APP.prerequisites),$($n.INSTALL.target))
+
+APP.src/   = $(SRC/)make
+APP.build/ = $(BUILD/)
+
+APP.SETUP.stamp     = $(APP.build/)compile_commands.json
+APP.CONFIGURE.stamp = $(APP.build/)CMakeCache.txt
+
+APP.CONFIGURE.exe   = $(CMAKE.exe)
+APP.CONFIGURE.extra = -G Ninja -DCMAKE_C_COMPILER="$(GCC.gcc)" -DCMAKE_CXX_COMPILER="$(GCC.gxx)" \
+                      -DCMAKE_C_FLAGS="$(call fn.ARGS,APP.GCC,*D *archs *sysroot *minver ?extra)" \
+                      -DCMAKE_EXE_LINKER_FLAGS="$(call fn.ARGS,APP.GCC,*archs *sysroot *minver ?extra.exe)" \
+                      -DCMAKE_INSTALL_PREFIX=$(PREFIX) -DCMAKE_PREFIX_PATH="$(call fn.ABSOLUTE,$(BUILD/))contrib"
+
+###############################################################################
+
+APP.out += $(APP.CONFIGURE.stamp)
+
+BUILD.out += $(APP.out)
+
+###############################################################################
+
+ifneq (none,$(APP.GCC.g))
+    ifeq (none,$(APP.GCC.O))
+        APP.CONFIGURE.extra += -DCMAKE_BUILD_TYPE=Debug
+    else
+        APP.CONFIGURE.extra += -DCMAKE_BUILD_TYPE=RelWithDebInfo
+    endif
+else
+    APP.CONFIGURE.extra += -DCMAKE_BUILD_TYPE=Release
+endif
+
+ifeq (on,$(GCC.lto))
+    APP.CONFIGURE.extra += -DCMAKE_INTERPROCEDURAL_OPTIMIZATION=ON
+else
+    APP.CONFIGURE.extra += -DCMAKE_INTERPROCEDURAL_OPTIMIZATION=OFF
+endif
+
+ifeq (1,$(HOST.cross))
+    ifeq ($(HOST.system),mingw)
+        APP.CONFIGURE.cross = -DWIN32=ON -DMINGW=ON -DCMAKE_SYSTEM_NAME=Windows \
+                              -DCMAKE_SYSTEM_PROCESSOR=$(HOST.machine) \
+                              -DCMAKE_RC_COMPILER=$(HOST.cross.prefix)windres \
+                              -DPKG_CONFIG_ARGN="--env-only"
+    else ifeq ($(HOST.system),darwin)
+        APP.CONFIGURE.cross = -DCMAKE_SYSTEM_NAME=Darwin
+    else
+        APP.CONFIGURE.cross = -DCMAKE_SYSTEM_NAME=$(HOST.systemf) -DCMAKE_SYSTEM_PROCESSOR=$(HOST.machine)
+    endif
+endif
+
+ifeq ($(HOST.system),darwin)
+    APP.CONFIGURE.extra += -DCMAKE_SYSTEM_PROCESSOR=$(HOST.machine) \
+                           -DCMAKE_OSX_ARCHITECTURES=$(HOST.machine) \
+                           -DCMAKE_OBJC_COMPILER="$(GCC.gcc)" \
+                           -DCMAKE_OBJC_FLAGS="$(call fn.ARGS,APP.GCC,*D *archs *sysroot *minver ?extra)"
+endif
+
+ifneq (-,$(V)-$(VERBOSE))
+    APP.BUILD.extra = -v
+endif
+
+export APP.version APP.repo.date
