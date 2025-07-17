@@ -34,6 +34,7 @@ mrproper: xclean
 include $(SRC/)make/include/base.rules
 
 include $(MODULES:%=$(SRC/)%/module.rules)
+include $(SRC/)make/include/app.rules
 -include $(SRC/)make/variant/$(HOST.system).rules
 -include $(SRC/)make/variant/$(HOST.system).$(HOST.machine).rules
 
@@ -42,6 +43,11 @@ include $(MODULES:%=$(SRC/)%/module.rules)
 ## force reconfigure
 .PHONY: reconfigure
 reconfigure:
+	$(SRC/)configure --force $(CONF.args)
+
+## generate config file for CMake in existing build dir
+
+$(BUILD/)hb_options.cmake:
 	$(SRC/)configure --force $(CONF.args)
 
 ###############################################################################

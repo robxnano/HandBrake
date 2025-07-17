@@ -3700,7 +3700,7 @@
 				);
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					"\"$(EXTERNAL_BUILD)/libhb\"",
+					"\"$(EXTERNAL_BUILD)/lib\"",
 					"\"$(EXTERNAL_BUILD)/contrib/lib\"",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -3728,7 +3728,7 @@
 				);
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					"\"$(EXTERNAL_BUILD)/libhb\"",
+					"\"$(EXTERNAL_BUILD)/lib\"",
 					"\"$(EXTERNAL_BUILD)/contrib/lib\"",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -3759,7 +3759,7 @@
 				);
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					"\"$(EXTERNAL_BUILD)/libhb\"",
+					"\"$(EXTERNAL_BUILD)/lib\"",
 					"\"$(EXTERNAL_BUILD)/contrib/lib\"",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = fr.handbrake.HandBrake;
@@ -3792,7 +3792,7 @@
 				);
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					"\"$(EXTERNAL_BUILD)/libhb\"",
+					"\"$(EXTERNAL_BUILD)/lib\"",
 					"\"$(EXTERNAL_BUILD)/contrib/lib\"",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = fr.handbrake.HandBrake;
@@ -4882,7 +4882,7 @@
 				);
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					"\"$(EXTERNAL_BUILD)/libhb\"",
+					"\"$(EXTERNAL_BUILD)/lib\"",
 					"\"$(EXTERNAL_BUILD)/contrib/lib\"",
 				);
 				MTL_ENABLE_DEBUG_INFO = YES;
@@ -4944,7 +4944,7 @@
 				);
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					"\"$(EXTERNAL_BUILD)/libhb\"",
+					"\"$(EXTERNAL_BUILD)/lib\"",
 					"\"$(EXTERNAL_BUILD)/contrib/lib\"",
 				);
 				MTL_ENABLE_DEBUG_INFO = NO;
@@ -5182,7 +5182,7 @@
 				);
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					"\"$(EXTERNAL_BUILD)/libhb\"",
+					"\"$(EXTERNAL_BUILD)/lib\"",
 					"\"$(EXTERNAL_BUILD)/contrib/lib\"",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -5242,7 +5242,7 @@
 				);
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					"\"$(EXTERNAL_BUILD)/libhb\"",
+					"\"$(EXTERNAL_BUILD)/lib\"",
 					"\"$(EXTERNAL_BUILD)/contrib/lib\"",
 				);
 				MTL_ENABLE_DEBUG_INFO = YES;
@@ -5333,7 +5333,7 @@
 				);
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					"\"$(EXTERNAL_BUILD)/libhb\"",
+					"\"$(EXTERNAL_BUILD)/lib\"",
 					"\"$(EXTERNAL_BUILD)/contrib/lib\"",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = fr.handbrake.HandBrake;
@@ -5466,7 +5466,7 @@
 				);
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					"\"$(EXTERNAL_BUILD)/libhb\"",
+					"\"$(EXTERNAL_BUILD)/lib\"",
 					"\"$(EXTERNAL_BUILD)/contrib/lib\"",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -5521,7 +5521,7 @@
 				);
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					"\"$(EXTERNAL_BUILD)/libhb\"",
+					"\"$(EXTERNAL_BUILD)/lib\"",
 					"\"$(EXTERNAL_BUILD)/contrib/lib\"",
 				);
 				MTL_ENABLE_DEBUG_INFO = NO;
@@ -5605,7 +5605,7 @@
 				);
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					"\"$(EXTERNAL_BUILD)/libhb\"",
+					"\"$(EXTERNAL_BUILD)/lib\"",
 					"\"$(EXTERNAL_BUILD)/contrib/lib\"",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = fr.handbrake.HandBrake;

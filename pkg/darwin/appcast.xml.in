@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle">
+    <channel>
+        <title>@HB_name@ @HOST_arch@ Appcast</title>
+        <link>@HB_url_appcast@</link>
+        <description></description>
+        <language>en</language>
+        <pubDate>@BUILD_date@</pubDate>
+        <lastBuildDate>@BUILD_date@</lastBuildDate>
+        <item>
+            <title>@HB_name@ @HB_version@ Released</title>
+            <cli>@HB_build@ "@HB_version@ @HOST_arch@"</cli>
+            <sparkle:releaseNotesLink>@HB_url_appnote@</sparkle:releaseNotesLink>
+            <pubDate>@BUILD_date@</pubDate>
+            <enclosure
+                sparkle:version="@HB_build@"
+                sparkle:shortVersionString="@HB_version@ @HOST_arch@"
+                url="http://handbrake.fr/rotation.php?file=@APPCAST_dmg@" 
+                length="@APPCAST_dmg_size@"
+                type="application/octet-stream"/>
+            <sparkle:minimumSystemVersion>10.7.0</sparkle:minimumSystemVersion>
+        </item>
+    </channel>
+</rss>
