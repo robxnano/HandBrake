@@ -46,7 +46,7 @@ jobs:
         ./configure --cross=aarch64-w64-mingw32 --enable-mf --launch-jobs=0 --launch
         cd build
         make pkg.create.zip
-        cd libhb
+        cd bin
         mv hb.dll hb_a64.dll
         
 
@@ -54,13 +54,13 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: HandBrakeCLI_ARM64
-        path: ./build/HandBrakeCLI.exe
+        path: build/bin/HandBrakeCLI.exe
 
     - name: Upload LibHB
       uses: actions/upload-artifact@v4
       with:
         name: LibHandBrake_ARM64
-        path: ./build/libhb/hb_a64.dll
+        path: build/bin/hb_a64.dll
 
   build_mingw:
     name: CLI / LibHB
@@ -119,13 +119,13 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: HandBrakeCLI
-        path: ./build/HandBrakeCLI.exe
+        path: build/bin/HandBrakeCLI.exe
 
     - name: Upload LibHB
       uses: actions/upload-artifact@v4
       with:
         name: LibHandBrake
-        path: ./build/libhb/hb.dll
+        path: build/bin/hb.dll
 
   build_gui:
     name: Windows UI

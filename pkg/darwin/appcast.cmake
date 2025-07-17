@@ -1,0 +1,7 @@
+if(DEFINED BINARY_DIR)
+  include(${BINARY_DIR}/hb_options.cmake)
+  get_filename_component(APPCAST_XML ${HB_url_appcast} NAME)
+  configure_file(${CMAKE_CURRENT_LIST_DIR}/appcast.xml.in ${BINARY_DIR}/pkg/${APPCAST_XML} @ONLY)
+else()
+  message(FATAL_ERROR "BINARY_DIR is not defined.")
+endif()
