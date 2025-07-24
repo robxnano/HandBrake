@@ -1,0 +1,91 @@
+name: handbrake-gstreamer-plugin
+version: '2404-1' # API version, only change when this file changes
+title: HandBrake GStreamer Plugin
+summary: GStreamer preview support for HandBrake
+description: |
+  This plugin provides the required libraries for video
+  and audio previews in HandBrake.
+license: GPL-2.0-or-later
+grade: stable
+confinement: strict
+base: core24
+compression: xz
+platforms:
+  amd64:
+  arm64:
+
+slots:
+  gstreamer-plugin-2404:
+    interface: content
+    content: gstreamer-plugin-2404
+    read:
+      - $SNAP/usr
+
+plugs:
+  gnome-46-2404:
+    interface: content
+    target: $SNAP/gnome-platform
+    default-provider: gnome-46-2404
+  gpu-2404:
+    interface: content
+    target: $SNAP/gpu-2404
+    default-provider: mesa-2404
+
+parts:
+  gst-plugins:
+    plugin: nil
+    stage-packages:
+      - gstreamer1.0-plugins-bad
+      - gstreamer1.0-libav
+    prime:
+    # List of plugins to include in the snap
+    # When adding more plugins, make sure to also include any dependent libraries below
+      # AV1 software decoder
+      - usr/lib/*/gstreamer-1.0/libgstaom.so
+      # ffmpeg decoder, needed for most audio formats as well as software h264 and h265
+      - usr/lib/*/gstreamer-1.0/libgstlibav.so
+      # VAAPI hardware video decoders, faster and more efficient than the software decoders
+      - usr/lib/*/gstreamer-1.0/libgstva.so
+      # Needed for parsing AV1 video
+      - usr/lib/*/gstreamer-1.0/libgstvideoparsersbad.so
+    # List of libraries to include in the snap
+    # We only prime the libraries specifically needed by the included plugins to avoid conflicts
+      - usr/lib/*/libass.so.*
+      - usr/lib/*/libavfilter.so.*
+      - usr/lib/*/libbs2b.so.*
+      - usr/lib/*/libfftw3.so.*
+      - usr/lib/*/libflite.so.*
+      - usr/lib/*/libflite_cmu_us_awb.so.*
+      - usr/lib/*/libflite_cmu_us_kal.so.*
+      - usr/lib/*/libflite_cmu_us_kal16.so.*
+      - usr/lib/*/libflite_cmu_us_rms.so.*
+      - usr/lib/*/libflite_cmu_us_slt.so.*
+      - usr/lib/*/libflite_cmulex.so.*
+      - usr/lib/*/libflite_usenglish.so.*
+      - usr/lib/*/liblilv-0.so.*
+      - usr/lib/*/libmysofa.so.*
+      - usr/lib/*/libplacebo.so.*
+      - usr/lib/*/libpocketsphinx.so.*
+      - usr/lib/*/libpostproc.so.*
+      - usr/lib/*/librubberband.so.*
+      - usr/lib/*/libsamplerate.so.*
+      - usr/lib/*/libserd-0.so.*
+      - usr/lib/*/libsord-0.so.*
+      - usr/lib/*/libsphinxbase.so.*
+      - usr/lib/*/libsratom-0.so.*
+      - usr/lib/*/libunibreak.so.*
+      - usr/lib/*/libvidstab.so.*
+      - usr/lib/*/libzimg.so.*
+      - usr/lib/*/libzix-0.so.*
+
+  # Find files provided by the base and platform snap and ensure they aren't
+  # duplicated in this snap
+  cleanup:
+    after: [gst-plugins]
+    plugin: nil
+    build-snaps: [core24, mesa-2404, gnome-46-2404]
+    override-prime: |
+      set -eux
+      for snap in "core24" "mesa-2404" "gnome-46-2404"; do
+        cd "/snap/$snap/current" && find . -type f,l -name *.so.* -exec rm -f "$CRAFT_PRIME/{}" \;
+      done

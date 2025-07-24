@@ -1,0 +1,47 @@
+name: handbrake-intel-media
+title: HandBrake Intel Media Plugin
+version: '2404-1' # API version, only change when this file changes
+summary: Intel Media driver support for HandBrake
+description: |
+  This plugin provides the required drivers and libraries for
+  hardware accelerated video encoding with Intel GPUs in HandBrake.
+license: BSD-3-Clause AND MIT
+grade: stable
+confinement: strict
+base: core24
+compression: xz
+platforms:
+  amd64:
+
+slots:
+  intel-media-2404:
+    interface: content
+    content: intel-media-2404
+    read:
+      - $SNAP/usr
+
+parts:
+  packages:
+    plugin: nil
+    stage-packages:
+      - intel-media-va-driver-non-free
+      - libdrm2
+      - libigdgmm12
+      - libmfx1
+      - libva2
+    build-snaps:
+       - gnome-46-2404/latest/candidate
+    prime:
+      - -usr/share/doc
+
+  # Find files provided by the base and platform snap and ensure they aren't
+  # duplicated in this snap
+  cleanup:
+    after: [packages]
+    plugin: nil
+    build-snaps: [core24, gnome-46-2404]
+    override-prime: |
+      set -eux
+      for snap in "core24" "gnome-46-2404"; do
+        cd "/snap/$snap/current" && find . -type f,l -name *.so.* -exec rm -f "$CRAFT_PRIME/{}" \;
+      done
