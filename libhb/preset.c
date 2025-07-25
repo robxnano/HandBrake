@@ -1050,8 +1050,9 @@ int hb_preset_job_add_audio(hb_handle_t *h, int title_index,
         add_audio_for_lang(list, preset, title, mux, copy_mask, fallback,
                            lang, behavior, mode, track_dict);
     }
-    // If AudioLanguageList is empty, try "any" language option
-    if (count <= 0)
+    // If AudioLanguageList is empty, or AudioTrackSelectionBehavior
+    // is "first" and no track was found, try "any" language option
+    if (count <= 0 || (behavior == 1 && hb_value_array_len(list) == 0))
     {
         add_audio_for_lang(list, preset, title, mux, copy_mask, fallback,
                            "any", behavior, mode, track_dict);
