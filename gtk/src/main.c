@@ -32,6 +32,7 @@ main (int argc, char *argv[])
     bindtextdomain(GETTEXT_PACKAGE, PACKAGE_LOCALE_DIR);
     bind_textdomain_codeset(GETTEXT_PACKAGE, "UTF-8");
     textdomain(GETTEXT_PACKAGE);
+    gtk_disable_setlocale();
 
     g_autofree char *app_cmd = (argc > 0) ? g_strdup(argv[0]) : NULL;
     g_autoptr(GApplication) app = G_APPLICATION(ghb_application_new(app_cmd));
