@@ -109,11 +109,19 @@ parts:
       - -usr/share/doc
       - -usr/share/ffmpeg
       - -usr/share/vpl
+  gstreamer-plugins:
+    after: [handbrake]
+    plugin: nil
+    stage-packages:
+      - gstreamer1.0-plugins-bad
+      - gstreamer1.0-plugins-ugly
+    prime:
+      - usr/lib/*/gstreamer-1.0/libgst*.so
 
   # Find files provided by the base and platform snap and ensure they aren't
   # duplicated in this snap
   cleanup:
-    after: [handbrake]
+    after: [gstreamer-plugins]
     plugin: nil
     build-snaps: [core24, gtk-common-themes, gnome-46-2404]
     override-prime: |
