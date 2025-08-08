@@ -42,8 +42,18 @@ plugs:
     target: $SNAP/intel-plugin/lib
 
 parts:
+  rust-toolchain:
+    plugin: nil
+    override-build: |
+      export PATH="$HOME/.cargo/bin:$PATH"
+      rustup default stable
+      cargo install cargo-c
+    build-packages:
+      - rustup
+      - libssl-dev
   handbrake:
-    source-type: local
+    after: [rust-toolchain]
+    source-type: git
     source: .
     parse-info: [usr/share/metainfo/fr.handbrake.ghb.metainfo.xml]
     plugin: make
@@ -53,17 +63,17 @@ parts:
     override-pull: |
       craftctl default
       craftctl set version="$(gtk/data/version.py)"
-      rustup default stable
     override-build: |
+      export PATH="$HOME/.cargo/bin:$PATH"
       if [ "$CRAFT_ARCH_BUILD_FOR" = "amd64" ]; then
         FLAG_QSV=--enable-qsv
       else
         FLAG_QSV=--disable-qsv
       fi
-      ${CRAFT_PART_SRC}/configure  --build=build --prefix=/usr --snap --enable-libdovi --enable-nvenc --enable-nvdec --enable-vce ${FLAG_QSV}
+      ${CRAFT_PART_SRC}/configure  --build=build-snap --prefix=/usr --snap --enable-libdovi --enable-nvenc --enable-nvdec --enable-vce ${FLAG_QSV}
       craftctl default
     make-parameters:
-      - -C build
+      - -C build-snap
     build-packages:
       - autoconf
       - automake
