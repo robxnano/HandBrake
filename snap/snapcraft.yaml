@@ -15,6 +15,7 @@ apps:
     desktop: usr/share/applications/fr.handbrake.ghb.desktop
     extensions: [gnome]
     plugs:
+      - audio-playback
       - home
       - removable-media
       - screen-inhibit-control
@@ -22,7 +23,7 @@ apps:
     environment:
       GDK_DEBUG: portals
       LIBVA_DRIVERS_PATH: $SNAP/intel-plugin/lib/${CRAFT_ARCH_TRIPLET_BUILD_FOR}/dri
-      LD_LIBRARY_PATH: $LD_LIBRARY_PATH:$SNAP/intel-plugin/lib/${CRAFT_ARCH_TRIPLET_BUILD_FOR}
+      LD_LIBRARY_PATH: ${LD_LIBRARY_PATH:+$LD_LIBRARY_PATH:}$SNAP/ffmpeg-platform/usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR:$SNAP/intel-plugin/lib/${CRAFT_ARCH_TRIPLET_BUILD_FOR}
   cli:
     command: usr/bin/HandBrakeCLI
     common-id: fr.handbrake.HandBrakeCLI
@@ -32,20 +33,24 @@ apps:
       - removable-media
     environment:
       LIBVA_DRIVERS_PATH: $SNAP/intel-plugin/lib/${CRAFT_ARCH_TRIPLET_BUILD_FOR}/dri
-      LD_LIBRARY_PATH: $LD_LIBRARY_PATH:$SNAP/intel-plugin/lib/${CRAFT_ARCH_TRIPLET_BUILD_FOR}
+      LD_LIBRARY_PATH: ${LD_LIBRARY_PATH:+$LD_LIBRARY_PATH:}:$SNAP/intel-plugin/lib/${CRAFT_ARCH_TRIPLET_BUILD_FOR}
 
-# Allows plugins for hardware acceleration to be mounted
 plugs:
+  ffmpeg-2404:
+    interface: content
+    target: ffmpeg-platform
+    default-provider: ffmpeg-2404
+# Optional plugins for hardware acceleration
   intel-0-2404: # plugin_name-api_version-ubuntu_base
     interface: content
     content: intel-0-2404
     target: $SNAP/intel-plugin/lib
-
 parts:
   rust-toolchain:
     plugin: nil
+    build-environment:
+      - PATH: $HOME/.cargo/bin${PATH:+:$PATH}
     override-build: |
-      export PATH="$HOME/.cargo/bin:$PATH"
       rustup default stable
       cargo install cargo-c
     build-packages:
@@ -58,13 +63,13 @@ parts:
     parse-info: [usr/share/metainfo/fr.handbrake.ghb.metainfo.xml]
     plugin: make
     build-environment:
-      - CC: 'cc'
-      - CXX: 'c++'
+      - CC: cc
+      - CXX: c++
+      - PATH: $HOME/.cargo/bin${PATH:+:$PATH}
     override-pull: |
       craftctl default
       craftctl set version="$(gtk/data/version.py)"
     override-build: |
-      export PATH="$HOME/.cargo/bin:$PATH"
       if [ "$CRAFT_ARCH_BUILD_FOR" = "amd64" ]; then
         FLAG_QSV=--enable-qsv
       else
@@ -97,22 +102,11 @@ parts:
       - libvpx-dev
       - nasm
       - rustup
-    prime:
-      - -usr/etc
-      - -usr/include
-      - -usr/lib/*/cmake
-      - -usr/lib/*/lib*.a
-      - -usr/lib/*/lib*.la
-      - -usr/lib/*/lib*.so
-      - -usr/lib/*/pkgconfig
-      - -usr/lib/pkgconfig
-      - -usr/share/doc
-      - -usr/share/ffmpeg
-      - -usr/share/vpl
   gstreamer-plugins:
     after: [handbrake]
     plugin: nil
     stage-packages:
+      - gstreamer1.0-libav
       - gstreamer1.0-plugins-bad
       - gstreamer1.0-plugins-ugly
     prime:
