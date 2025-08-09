@@ -21,8 +21,9 @@ apps:
       - screen-inhibit-control
       - upower-observe
     environment:
+      GST_PLUGIN_PATH: $SNAP/gstreamer-plugin/usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR/gstreamer-1.0
       LIBVA_DRIVERS_PATH: $SNAP/intel-media/usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR/dri
-      LD_LIBRARY_PATH: ${LD_LIBRARY_PATH:+$LD_LIBRARY_PATH:}$SNAP/intel-media/usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR
+      LD_LIBRARY_PATH: ${LD_LIBRARY_PATH:+$LD_LIBRARY_PATH:}$SNAP/intel-media/usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR:$SNAP/ffmpeg-platform/usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR:$SNAP/gstreamer-plugin/usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR
   cli:
     command: usr/bin/HandBrakeCLI
     common-id: fr.handbrake.HandBrakeCLI
@@ -35,6 +36,14 @@ apps:
       LD_LIBRARY_PATH: ${LD_LIBRARY_PATH:+$LD_LIBRARY_PATH:}$SNAP/intel-media/usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR
 
 plugs:
+  ffmpeg-2404:
+    interface: content
+    target: $SNAP/ffmpeg-platform
+    default-provider: ffmpeg-2404
+  gstreamer-plugin-2404:
+    interface: content
+    content: gstreamer-plugin-2404
+    target: $SNAP/gstreamer-plugin/usr
   intel-media-2404:
     interface: content
     content: intel-media-2404
