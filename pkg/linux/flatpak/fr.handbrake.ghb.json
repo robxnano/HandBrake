@@ -31,6 +31,12 @@
             "subdirectories": true,
             "no-autodownload": true,
             "autodelete": true
+        },
+        "org.freedesktop.Platform.ffmpeg-full": {
+            "version": "24.08",
+            "directory": "lib/ffmpeg",
+            "add-ld-path": ".",
+            "autodelete": false
         }
     },
     "modules": [
@@ -67,7 +73,10 @@
             "build-options": {
             },
             "builddir": true,
-            "post-install": ["install -d /app/extensions"],
+            "post-install": [
+                "install -d /app/extensions",
+                "install -d /app/lib/ffmpeg"
+            ],
             "sources": [
                 {
                     "type": "archive",
