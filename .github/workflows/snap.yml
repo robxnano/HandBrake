@@ -17,11 +17,26 @@ jobs:
       id: build
       uses: snapcore/action-build@v1
 
-    - name: Upload Snap
+    - name: Build GStreamer Plugin
+      id: build-gstreamer-plugin
+      uses: snapcore/action-build@v1
+      with:
+        path: pkg/linux/snap/gstreamer-plugin
+
+    - name: Build Intel Media Plugin
+      id: build-intel-media
+      uses: snapcore/action-build@v1
+      with:
+        path: pkg/linux/snap/intel-media
+
+    - name: Upload Snaps
       uses: actions/upload-artifact@v4
       with:
         name: HandBrake
-        path: ${{ steps.build.outputs.snap }}
+        path: |
+          ${{ steps.build.outputs.snap }}
+          ${{ steps.build-gstreamer-plugin.outputs.snap }}
+          ${{ steps.build-intel-media.outputs.snap }}
 
     - name: Publish to Snapcraft
       uses: snapcore/action-publish@v1
