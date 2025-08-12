@@ -92,7 +92,7 @@ ifeq ($(HB.repo.type),release)
 else
     PKG.branch.flatpak = development
 endif
-PKG.plugin.version.flatpak = 1
+PKG.plugin.version.flatpak = 2
 
 PKG.flatpak/  = $(PKG.in.abs/)linux/flatpak/
 
