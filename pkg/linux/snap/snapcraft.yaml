@@ -66,16 +66,12 @@ parts:
       - CC: cc
       - CXX: c++
       - PATH: $HOME/.cargo/bin${PATH:+:$PATH}
+      - BUILD_FLAGS: --snap --prefix=/usr --build=build-snap --enable-nvenc --enable-nvdec --enable-vce --enable-qsv
     override-pull: |
       craftctl default
       craftctl set version="$(gtk/data/version.py)"
     override-build: |
-      if [ "$CRAFT_ARCH_BUILD_FOR" = "amd64" ]; then
-        FLAG_QSV=--enable-qsv
-      else
-        FLAG_QSV=--disable-qsv
-      fi
-      $CRAFT_PART_SRC/configure --snap --prefix=/usr --build=build-snap --enable-libdovi --enable-nvenc --enable-nvdec --enable-vce $FLAG_QSV
+      $CRAFT_PART_SRC/configure $BUILD_FLAGS
       craftctl default
     make-parameters:
       - -C build-snap
