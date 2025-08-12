@@ -3,7 +3,7 @@
     "branch": "2",
     "runtime": "fr.handbrake.ghb",
     "runtime-version": "development",
-    "sdk": "org.gnome.Sdk//48",
+    "sdk": "org.gnome.Sdk//master",
     "build-extension": true,
     "separate-locales": false,
     "modules": [
