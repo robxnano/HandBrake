@@ -134,9 +134,54 @@ endif
 endif
 
 ###############################################################################
+# Snap
+###############################################################################
+
+SNAPFLAGS = $(FPFLAGS)
+
+PKG.snap.version     = `$(SRC/)gtk/data/version.py`
+PKG.snap.api_version = 1.10.0
+
+PKG.snap/     = $(PKG.in.abs/)linux/snap/
+PKG.out.snap/ = $(PKG.out.abs/)
+
+ifeq (x86_64,$(HOST.machine))
+    PKG.snap.machine = amd64
+else ifeq (aarch64,$(HOST.machine))
+    PKG.snap.machine = arm64
+else
+    PKG.snap.machine = $(HOST.machine)
+endif
+
+PKG.gui.snap = $(PKG.out.snap/)handbrake-$(PKG.snap.version)_$(PKG.snap.machine).snap
+PKG.gui.template.snap = $(PKG.snap/)snapcraft.yaml
+PKG.gui.manifest.snap = $(PKG.out.snap/)snapcraft.yaml
+
+PKG.gstreamer.snap = $(PKG.out.snap/)gstreamer-plugin/handbrake-gstreamer-plugin-$(PKG.snap.api_version)_$(PKG.snap.machine).snap
+PKG.gstreamer.template.snap = $(PKG.snap/)gstreamer-plugin/snapcraft.yaml
+PKG.gstreamer.manifest.snap = $(PKG.out.snap/)gstreamer-plugin/snapcraft.yaml
+
+PKG.mediasdk.snap = $(PKG.out.snap/)intel-media/handbrake-intel-media-$(PKG.snap.api_version)_$(PKG.snap.machine).snap
+PKG.mediasdk.template.snap = $(PKG.snap/)intel-media/snapcraft.yaml
+PKG.mediasdk.manifest.snap = $(PKG.out.snap/)intel-media/snapcraft.yaml
+
+PKG.plugins.snap = $(PKG.gstreamer.snap) $(PKG.mediasdk.snap)
+
+PKG.all.snap = $(PKG.gui.snap) $(PKG.gstreamer.snap)
+ifeq (1,$(FEATURE.qsv))
+    PKG.all.snap += $(PKG.mediasdk.snap)
+endif
+
+PKG.all.manifest.snap = $(PKG.gui.manifest.snap) $(PKG.gstreamer.manifest.snap)
+ifeq (1,$(FEATURE.qsv))
+    PKG.all.manifest.snap += $(PKG.mediasdk.manifest.snap)
+endif
+
+###############################################################################
 
 BUILD.out += $(PKG.src.tar)
 BUILD.out += $(PKG.gui.flatpak)
+BUILD.out += $(PKG.gui.snap)
 BUILD.out += $(PKG.cli.deb)
 BUILD.out += $(PKG.gui.deb)
 BUILD.out += $(PKG.cli.rpm)

@@ -6,6 +6,12 @@ pkg.create.gui.debug.flatpak:: $(PKG.gui.debug.flatpak)
 pkg.create.debug.flatpak:: $(PKG.debug.flatpak)
 pkg.create.plugins.flatpak:: $(PKG.plugins.flatpak)
 pkg.create.flathub:: $(FLATHUB_MANIFEST)
+pkg.create.manifest.snap:: $(PKG.all.manifest.snap)
+pkg.create.snap:: $(PKG.all.snap)
+pkg.create.gui.snap:: $(PKG.gui.snap)
+pkg.create.gstreamer.snap:: $(PKG.gstreamer.snap)
+pkg.create.mediasdk.snap:: $(PKG.mediasdk.snap)
+pkg.create.plugins.snap:: $(PKG.plugins.snap)
 pkg.create.deb:: $(PKG.gui.deb) $(PKG.cli.deb)
 pkg.create.rpm:: $(PKG.rpm.stamp)
 pkg.create.src.deb:: $(PKG.src.deb.stamp)
@@ -109,6 +115,36 @@ $(PKG.mediasdk.flatpak): GNUmakefile $(PKG.mediasdk.template.flatpak) $(PKG.gui.
 	flatpak-builder --default-branch=$(PKG.branch.flatpak) --disable-cache --force-clean $(PGPSIGN) --repo=$(PKG.repo.flatpak) $(PKG.mediasdk.build.flatpak) $(PKG.mediasdk.manifest.flatpak)
 	flatpak build-bundle --runtime $(PKG.repo.flatpak) $(PKG.mediasdk.flatpak) $(PKG.mediasdk.name.flatpak) $(PKG.plugin.version.flatpak) --runtime-repo=https://flathub.org/repo/flathub.flatpakrepo
 	-flatpak --user remove --noninteractive $(PKG.gui.name.flatpak)//$(PKG.branch.flatpak)
+
+#
+# Snap binary package rules
+#
+
+$(PKG.gui.manifest.snap): GNUmakefile $(PKG.gui.template.snap) $(PKG.src.tar.bz2)
+	$(MKDIR.exe) -p $(PKG.out.snap/)
+	$(SRC/)scripts/create_snapcraft_manifest.py $(FPFLAGS) -a $(PKG.basename)-source.tar.bz2 -t $(PKG.gui.template.snap) $(PKG.gui.manifest.snap)
+
+$(PKG.gui.snap): $(PKG.gui.manifest.snap)
+	cd $(PKG.out.snap/) && snapcraft --verbose
+
+$(PKG.gstreamer.manifest.snap): $(PKG.gstreamer.template.snap)
+	$(MKDIR.exe) -p $(PKG.out.snap/)gstreamer-plugin/
+	$(CP.exe) $(PKG.gstreamer.template.snap) $(PKG.gstreamer.manifest.snap)
+
+$(PKG.gstreamer.snap): $(PKG.gstreamer.manifest.snap)
+	cd $(PKG.out.snap/)gstreamer-plugin/ && snapcraft --verbose
+
+$(PKG.mediasdk.manifest.snap): $(PKG.mediasdk.template.snap)
+	$(MKDIR.exe) -p $(PKG.out.snap/)intel-media/
+	$(CP.exe) $(PKG.mediasdk.template.snap) $(PKG.mediasdk.manifest.snap)
+
+$(PKG.mediasdk.snap): $(PKG.mediasdk.manifest.snap)
+	cd $(PKG.out.snap/)intel-media/ && snapcraft --verbose
+
+pkg.snap.clean:
+	-cd $(PKG.out.snap/) && snapcraft clean
+	-cd $(PKG.out.snap/)gstreamer-plugin/ && snapcraft clean
+	-cd $(PKG.out.snap/)intel-media/ && snapcraft clean
 
 #
 # Debian binary package rules
