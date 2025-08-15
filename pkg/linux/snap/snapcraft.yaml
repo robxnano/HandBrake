@@ -3,7 +3,7 @@ adopt-info: handbrake
 grade: stable
 confinement: strict
 base: core24
-compression: lzo
+compression: xz
 platforms:
   amd64:
   arm64:

@@ -8,7 +8,7 @@ license: BSD-3-Clause AND MIT
 grade: stable
 confinement: strict
 base: core24
-compression: lzo
+compression: xz
 platforms:
   amd64:
 
