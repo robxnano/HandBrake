@@ -1398,9 +1398,6 @@ def createCLI( cross = None ):
     ## add feature options
     grp = cli.add_argument_group( 'Feature Options' )
 
-    h = IfHost( 'enable assembly code in non-contrib modules', 'NOMATCH*-*-darwin*', 'NOMATCH*-*-linux*', none=argparse.SUPPRESS ).value
-    grp.add_argument( '--enable-asm', default=False, action='store_true', help=h )
-
     # GTK GUI is enabled by default on Linux and BSD
     gtk_default = host_tuple.match( '*-*-linux*', '*-*-*bsd*' )
     h = 'enable GTK GUI' if gtk_supported else argparse.SUPPRESS
@@ -1409,8 +1406,8 @@ def createCLI( cross = None ):
     grp.add_argument( '--disable-gtk', dest="enable_gtk", action='store_false', help=h)
 
     # Options deprecated
-    grp.add_argument( '--disable-gtk-update-checks', default=False, action='store_true', help=argparse.SUPPRESS )
-    grp.add_argument( '--disable-gst', default=False, action='store_true', help=argparse.SUPPRESS )
+
+    grp.add_argument( '--enable-asm', default=False, action='store_true', help=argparse.SUPPRESS )
 
     h = IfHost( 'x265 video encoder', '*-*-*', none=argparse.SUPPRESS ).value
     grp.add_argument( '--enable-x265', dest="enable_x265", default=True, action='store_true', help=(( 'enable %s' %h ) if h != argparse.SUPPRESS else h) )
@@ -1742,8 +1739,6 @@ try:
     cli = createCLI( cross )
     options, args = cli.parse_known_args()
 
-    if options.disable_gtk_update_checks:
-        raise AbortError('The --disable-gtk-update-checks flag is no longer required or supported')
 
     ## update cfg with cli directory locations
     cfg.update_cli( options )
@@ -2083,7 +2078,6 @@ int main()
     doc.add( 'SECURITY.harden',     int( options.enable_harden ))
 
     doc.addBlank()
-    doc.add( 'FEATURE.asm',        int( 0 ))
     doc.add( 'FEATURE.fdk_aac',    int( options.enable_fdk_aac ))
     doc.add( 'FEATURE.ffmpeg_aac', int( options.enable_ffmpeg_aac ))
     doc.add( 'FEATURE.flatpak',    int( options.flatpak ))
@@ -2167,16 +2161,6 @@ int main()
         doc.add( 'LIBHB.GCC.D', 'ARCH_X86_64', append=True )
     elif host_tuple.match( 'amd64-*' ):
         doc.add( 'LIBHB.GCC.D', 'ARCH_X86_64', append=True )
-
-    if options.enable_asm and ( not Tools.nasm.fail ):
-        asm = ''
-        if host_tuple.match( 'i?86-*' ):
-            asm = 'x86'
-            doc.add( 'LIBHB.GCC.D', 'HAVE_MMX', append=True )
-        elif host_tuple.match( 'x86_64-*' ) or host_tuple.match( 'amd64-*' ):
-            asm = 'x86'
-            doc.add( 'LIBHB.GCC.D', 'HAVE_MMX ARCH_X86_64', append=True )
-        doc.update( 'FEATURE.asm', asm )
 
     ## add exports to make
     if len(exports):
