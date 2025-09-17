@@ -5,14 +5,10 @@ MACOSX.src/   = $(SRC/)macosx/
 MACOSX.build/ = $(BUILD/)macosx/
 MACOSX.xroot/ = $(BUILD/)xroot/
 
-MACOSX.m4.in  = $(wildcard $(MACOSX.src/)*.m4)
-MACOSX.m4.out = $(MACOSX.m4.in:$(MACOSX.src/)%.m4=$(MACOSX.build/)%)
-
 MACOSX.osl.filelist = $(MACOSX.build/)osl.filelist.txt
 
 ###############################################################################
 
-BUILD.out += $(MACOSX.m4.out)
 BUILD.out += $(MACOSX.osl.filelist)
 
 ###############################################################################

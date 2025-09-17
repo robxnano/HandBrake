@@ -1,0 +1,43 @@
+#ifndef HANDBRAKE_PROJECT_H
+#define HANDBRAKE_PROJECT_H
+
+#define HB_PROJECT_TITLE               "@HB_title@"
+#define HB_PROJECT_NAME                "@HB_name@"
+#define HB_PROJECT_URL_WEBSITE         "@HB_url_website@"
+#define HB_PROJECT_URL_COMMUNITY       "@HB_url_community@"
+#define HB_PROJECT_URL_IRC             "@HB_url_irc@"
+#define HB_PROJECT_URL_APPCAST         "@HB_url_appcast@"
+#define HB_PROJECT_VERSION_MAJOR       @HB_version_major@
+#define HB_PROJECT_VERSION_MINOR       @HB_version_minor@
+#define HB_PROJECT_VERSION_POINT       @HB_version_point@
+#define HB_PROJECT_VERSION             "@HB_version@"
+#define HB_PROJECT_VERSION_HEX         0x@HB_version_hex@LL
+#define HB_PROJECT_BUILD               @HB_build@
+#define HB_PROJECT_REPO_URL            "@HB_repo_url@"
+#define HB_PROJECT_REPO_TAG            "@HB_repo_tag@"
+#define HB_PROJECT_REPO_REV            @HB_repo_rev@
+#define HB_PROJECT_REPO_HASH           "@HB_repo_hash@"
+#define HB_PROJECT_REPO_BRANCH         "@HB_repo_branch@"
+#define HB_PROJECT_REPO_REMOTE         "@HB_repo_remote@"
+#define HB_PROJECT_REPO_TYPE           "@HB_repo_type@"
+#define HB_PROJECT_REPO_OFFICIAL       @HB_repo_official@
+#define HB_PROJECT_REPO_DATE           "@HB_repo_date@"
+
+#define HB_PROJECT_HOST_SYSTEMF        "@HOST_systemf@"
+#define HB_PROJECT_HOST_TITLE          "@HOST_title@"
+#define HB_PROJECT_HOST_ARCH           "@HOST_arch@"
+
+#define HB_PROJECT_FEATURE_FDK_AAC     @FEATURE_fdk_aac@
+#define HB_PROJECT_FEATURE_FFMPEG_AAC  @FEATURE_ffmpeg_aac@
+#define HB_PROJECT_FEATURE_GTK         @FEATURE_gtk@
+#define HB_PROJECT_FEATURE_MF          @FEATURE_mf@
+#define HB_PROJECT_FEATURE_NVENC       @FEATURE_nvenc@
+#define HB_PROJECT_FEATURE_NVDEC       @FEATURE_nvdec@
+#define HB_PROJECT_FEATURE_QSV         @FEATURE_qsv@
+#define HB_PROJECT_FEATURE_VCE         @FEATURE_vce@
+#define HB_PROJECT_FEATURE_X265        @FEATURE_x265@
+#define HB_PROJECT_FEATURE_LIBDOVI     @FEATURE_libdovi@
+
+#define HB_PROJECT_SECURITY_HARDEN     @SECURITY_harden@
+
+#endif /* HANDBRAKE_PROJECT_H */

@@ -10,12 +10,12 @@ $(PKG.libhb.zip): | $(STAGE.out.libhb/)
 
 $(STAGE.out.cli/):
 	-$(MKDIR.exe) -p $@
-	$(CP.exe) HandBrakeCLI.exe $(STAGE.out.cli/)
+	$(CP.exe) bin/HandBrakeCLI.exe $(STAGE.out.cli/)
 	$(call STAGE.doc,$(STAGE.out.cli/))
 
 $(STAGE.out.libhb/):
 	-$(MKDIR.exe) -p $@
-	$(CP.exe) libhb/hb.dll $(STAGE.out.libhb/)
+	$(CP.exe) bin/hb.dll $(STAGE.out.libhb/)
 	$(call STAGE.doc,$(STAGE.out.libhb/))
 
 

@@ -1,0 +1,42 @@
+$(eval $(call import.MODULE.rules,APP))
+
+build: app.build
+install: app.install
+install-strip: app.install-strip
+uninstall: app.uninstall
+clean: app.clean
+xclean: app.xclean
+
+app.configure: $(APP.CONFIGURE.stamp)
+
+$(APP.CONFIGURE.stamp): | $(APP.d) $(BUILD/)GNUmakefile $(BUILD/)hb_options.cmake
+	$(CMAKE.exe) -B $(call fn.ABSOLUTE,$(APP.build/)) -S $(call fn.ABSOLUTE,$(APP.src/)) \
+		$(APP.CONFIGURE.extra) $(APP.CONFIGURE.cross)
+
+app.reconfigure: | $(APP.CONFIGURE.stamp) $(APP.d) $(BUILD/)GNUmakefile
+	-$(RM.exe) $(APP.CONFIGURE.stamp)
+	$(CMAKE.exe) -B $(call fn.ABSOLUTE,$(APP.build/)) -S $(call fn.ABSOLUTE,$(APP.src/)) \
+		$(APP.CONFIGURE.extra) $(APP.CONFIGURE.cross)
+
+app.build: | $(APP.CONFIGURE.stamp)
+	+$(NINJA.exe) -C $(call fn.ABSOLUTE,$(APP.build/)) $(APP.BUILD.extra)
+
+app.test: app.build
+	$(NINJA.exe) test $(APP.BUILD.extra)
+
+app.install-strip: app.build
+	$(CMAKE.exe) --install $(call fn.ABSOLUTE,$(APP.build/)) --strip
+
+app.install: app.build
+	$(CMAKE.exe) --install $(call fn.ABSOLUTE,$(APP.build/))
+
+app.uninstall:
+	$(CMAKE.exe) --build $(call fn.ABSOLUTE,$(APP.build/)) --target uninstall
+
+app.clean:
+	-$(NINJA.exe) -C $(call fn.ABSOLUTE,$(APP.build/)) clean
+
+app.xclean: app.clean
+	-$(RM.exe) -r $(APP.build/)CMakeFiles
+	-$(RM.exe) $(APP.SETUP.stamp) $(APP.CONFIGURE.stamp) $(APP.build/)cmake_install.cmake
+	-$(RM.exe) $(APP.build/)build.ninja $(APP.build/).ninja_deps $(APP.build/).ninja_log

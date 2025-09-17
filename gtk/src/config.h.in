@@ -1,0 +1,6 @@
+
+#pragma once
+
+#cmakedefine ENABLE_NLS 1
+#cmakedefine GETTEXT_PACKAGE "@GETTEXT_PACKAGE@"
+#cmakedefine PACKAGE_LOCALE_DIR "@PACKAGE_LOCALE_DIR@"

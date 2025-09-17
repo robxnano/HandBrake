@@ -24,7 +24,7 @@ $(PKG.cli.tar): | $(STAGE.out.cli/)
 
 $(STAGE.out.cli/):
 	-$(MKDIR.exe) -p $@
-	$(CP.exe) HandBrakeCLI $(STAGE.out.cli/)
+	$(CP.exe) bin/HandBrakeCLI $(STAGE.out.cli/)
 	$(call STAGE.doc,$(STAGE.out.cli/))
 
 #
