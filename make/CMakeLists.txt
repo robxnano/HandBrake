@@ -1,8 +1,13 @@
 # Copyright (C) 2025 HandBrake Team
 # SPDX-License-Identifier: GPL-2.0-or-later
 
+# CMake build system for HandBrake
+# This is the root CMakeLists.txt file, placed in the make directory
+# to discourage users from trying to use it directly. Instead users
+# should run the configure script and make in the build directory.
+
 cmake_minimum_required(VERSION 3.16...4.1)
-project(handbrake LANGUAGES C CXX)
+project(HandBrake LANGUAGES C CXX)
 
 if(APPLE)
   enable_language(OBJC)

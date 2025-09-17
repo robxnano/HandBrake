@@ -6,7 +6,7 @@ find_package(Gettext)
 if(GETTEXT_FOUND)
   file(GLOB PO_FILES *.po)
   set(_mo_files)
-  
+
   foreach(file ${PO_FILES})
     get_filename_component(_po_lang ${file} NAME_WE)
     set(_mo_file ${CMAKE_CURRENT_BINARY_DIR}/${_po_lang}/LC_MESSAGES/${GETTEXT_PACKAGE}.mo)

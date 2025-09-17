@@ -1,7 +1,7 @@
 # Copyright (C) 2023-2025 HandBrake Team
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-target_sources(libhandbrake PRIVATE
+target_sources(libhb PRIVATE
   blend_vt.m
   chroma_smooth_vt.m
   comb_detect_vt.m
@@ -52,6 +52,6 @@ foreach(name ${HB_METAL_SRC})
   target_sources(hb_metal PRIVATE ${name_we}.c)
 endforeach()
 
-target_sources(libhandbrake PRIVATE $<TARGET_OBJECTS:hb_metal>)
+target_link_libraries(libhb PRIVATE hb_metal)
 
 configure_file(${CMAKE_SOURCE_DIR}/../macosx/Info.plist.in ${CMAKE_BINARY_DIR}/macosx/Info.plist @ONLY)

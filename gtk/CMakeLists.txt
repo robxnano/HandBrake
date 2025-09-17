@@ -23,7 +23,7 @@ target_add_pkg(handbrake-gtk gtk4 PRIVATE MODULES "gtk4 >= ${GTK_MIN_VER}")
 target_add_pkg(handbrake-gtk glib PRIVATE MODULES "glib-2.0 >= ${GLIB_MIN_VER}" gio-2.0 gthread-2.0 gmodule-2.0)
 target_add_pkg(handbrake-gtk libxml-2.0 PRIVATE)
 
-target_link_libraries(handbrake-gtk PRIVATE libhandbrake)
+target_link_libraries(handbrake-gtk PRIVATE libhb)
 target_include_directories(handbrake-gtk PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src ${CMAKE_CURRENT_BINARY_DIR}/src)
 
 if(NOT CMAKE_C_EXTENSIONS)
@@ -61,7 +61,7 @@ target_compile_options(handbrake-gtk PRIVATE
 )
 
 # Needed to allow callbacks in UI files to work
-target_link_options(handbrake-gtk PRIVATE -Wl,--export-dynamic -Wl,--exclude-libs,ALL)
+target_link_options(handbrake-gtk PRIVATE LINKER:--export-dynamic LINKER:--exclude-libs,ALL)
 
 add_subdirectory(po)
 add_subdirectory(data)
