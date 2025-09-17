@@ -14,6 +14,9 @@ $(eval $(call import.MODULE.defs,LIBHB,libhb,$(__deps__)))
 $(eval $(call import.GCC,LIBHB))
 $(eval $(call import.METAL,LIBHB))
 
+LIBHB.PKGCONFIG.env = PKG_CONFIG_PATH="$(call fn.ABSOLUTE,$(CONTRIB.build/))lib/pkgconfig:$(PKG_CONFIG_PATH)"
+LIBHB.PKGCONFIG.exe = $(LIBHB.PKGCONFIG.env) $(PKGCONFIG.exe)
+
 ###############################################################################
 
 LIBHB.src/   = $(SRC/)libhb/
@@ -61,6 +64,12 @@ endif
 
 ifneq (,$(filter $(HOST.system),freebsd netbsd openbsd))
     LIBHB.GCC.I += $(LOCALBASE)/include
+endif
+
+LIBHB.pkgconfig_libs = libva
+
+ifeq (1,$(FEATURE.snap))
+    LIBHB.GCC.pkgconf_i += $(shell $(LIBHB.PKGCONFIG.exe) --cflags $(LIBHB.pkgconfig_libs))
 endif
 
 ifeq ($(HOST.system),cygwin)

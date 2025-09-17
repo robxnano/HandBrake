@@ -87,6 +87,7 @@ GCC.args.F                 = -F$(1)
 GCC.args.f                 = -framework $(1)
 GCC.args.L                 = -L$(1)
 GCC.args.l                 = -l$(1)
+GCC.args.pkgconf_i         = $(1)
 GCC.args.pkgconfig         = $(1)
 GCC.args.end               = -Wl,--end-group
 
@@ -183,6 +184,7 @@ define import.GCC
     $(1).GCC.args.lto.thin  = $$(GCC.args.lto.thin)
     $(1).GCC.args.D         = $$(GCC.args.D)
     $(1).GCC.args.I         = $$(GCC.args.I)
+    $(1).GCC.args.pkgconf_i = $$(GCC.args.pkgconf_i)
     $(1).GCC.args.muldefs   = $$(GCC.args.muldefs)
     $(1).GCC.args.start     = $$(GCC.args.start)
     $(1).GCC.args.F         = $$(GCC.args.F)
@@ -208,19 +210,19 @@ define import.GCC
     $(1).GCC.o = -o $$(3)
 
     # FUNCTION: C precompiled headers
-    $(1).GCC.H_O.args = !gcc ?c_std ?pipe ?ML ?H *W *archs *sysroot *minver ?vis ?pic .g .O ?extra ?extra.h_o .cpu .lto *D *I !c !o
+    $(1).GCC.H_O.args = !gcc ?c_std ?pipe ?ML ?H *W *archs *sysroot *minver ?vis ?pic .g .O ?extra ?extra.h_o .cpu .lto *D *I !pkgconf_i !c !o
     $(1).GCC.H_O = $$(call fn.ARGS,$(1).GCC,$$($(1).GCC.H_O.args),$$(1),$$(2))
 
     # FUNCTION: C compile source
-    $(1).GCC.C_O.args = !gcc ?c_std ?pipe ?ML ?H *W *archs *sysroot *minver ?vis ?pic .g .O ?extra ?extra.c_o .cpu .lto *D *I !c !o
+    $(1).GCC.C_O.args = !gcc ?c_std ?pipe ?ML ?H *W *archs *sysroot *minver ?vis ?pic .g .O ?extra ?extra.c_o .cpu .lto *D *I !pkgconf_i !c !o
     $(1).GCC.C_O = $$(call fn.ARGS,$(1).GCC,$$($(1).GCC.C_O.args),$$(1),$$(2))
 
     # FUNCTION: C++ precompile headers
-    $(1).GCC.HPP_O.args = !gxx ?cxx_std ?pipe ?ML ?H *W *archs *sysroot *minver ?vis ?pic .g .O ?extra ?extra.hpp_o .cpu .lto *D *I !c !o
+    $(1).GCC.HPP_O.args = !gxx ?cxx_std ?pipe ?ML ?H *W *archs *sysroot *minver ?vis ?pic .g .O ?extra ?extra.hpp_o .cpu .lto *D *I !pkgconf_i !c !o
     $(1).GCC.HPP_O = $$(call fn.ARGS,$(1).GCC,$$($(1).GCC.HPP_O.args),$$(1),$$(2))
 
     # FUNCTION: C++ compile source
-    $(1).GCC.CPP_O.args = !gxx ?cxx_std ?pipe ?ML ?H *W *archs *sysroot *minver ?vis ?pic .g .O ?extra ?extra.cpp_o .cpu .lto *D *I !c !o
+    $(1).GCC.CPP_O.args = !gxx ?cxx_std ?pipe ?ML ?H *W *archs *sysroot *minver ?vis ?pic .g .O ?extra ?extra.cpp_o .cpu .lto *D *I !pkgconf_i !c !o
     $(1).GCC.CPP_O = $$(call fn.ARGS,$(1).GCC,$$($(1).GCC.CPP_O.args),$$(1),$$(2))
 
     ###########################################################################
