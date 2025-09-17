@@ -1,0 +1,115 @@
+name: handbrake
+adopt-info: handbrake
+grade: stable
+confinement: strict
+base: core24
+compression: xz
+platforms:
+  amd64:
+  arm64:
+
+apps:
+  handbrake:
+    command: usr/bin/ghb
+    common-id: fr.handbrake.ghb.desktop
+    desktop: usr/share/applications/fr.handbrake.ghb.desktop
+    extensions: [gnome]
+    plugs:
+      - audio-playback
+      - home
+      - removable-media
+      - screen-inhibit-control
+      - upower-observe
+    environment:
+      GST_PLUGIN_PATH: $SNAP/gstreamer-plugin/usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR/gstreamer-1.0
+      LIBVA_DRIVERS_PATH: $SNAP/intel-media/usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR/dri
+      LD_LIBRARY_PATH: ${LD_LIBRARY_PATH:+$LD_LIBRARY_PATH:}$SNAP/intel-media/usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR:$SNAP/gstreamer-plugin/usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR:$SNAP/gnome-platform/usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR/blas:$SNAP/gnome-platform/usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR/lapack
+  cli:
+    command: usr/bin/HandBrakeCLI
+    common-id: fr.handbrake.HandBrakeCLI
+    extensions: [gnome]
+    plugs:
+      - home
+      - removable-media
+    environment:
+      LIBVA_DRIVERS_PATH: $SNAP/intel-media/usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR/dri
+      LD_LIBRARY_PATH: ${LD_LIBRARY_PATH:+$LD_LIBRARY_PATH:}$SNAP/intel-media/usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR
+
+plugs:
+  gstreamer-plugin-2404:
+    interface: content
+    content: gstreamer-plugin-2404
+    target: $SNAP/gstreamer-plugin/usr
+  intel-media-2404:
+    interface: content
+    content: intel-media-2404
+    target: $SNAP/intel-media/usr
+
+parts:
+  rust-toolchain:
+    plugin: nil
+    build-environment:
+      - PATH: $HOME/.cargo/bin${PATH:+:$PATH}
+    override-build: |
+      rustup default stable
+      cargo install cargo-c
+    build-packages:
+      - rustup
+      - libssl-dev
+  handbrake:
+    after: [rust-toolchain]
+    source-type: git
+    source: .
+    parse-info: [usr/share/metainfo/fr.handbrake.ghb.metainfo.xml]
+    plugin: make
+    build-environment:
+      - CC: cc
+      - CXX: c++
+      - PATH: $HOME/.cargo/bin${PATH:+:$PATH}
+    override-pull: |
+      craftctl default
+      craftctl set version="$(gtk/data/version.py)"
+    override-build: |
+      if [ "$CRAFT_ARCH_BUILD_FOR" = "amd64" ]; then
+        FLAG_QSV=--enable-qsv
+      else
+        FLAG_QSV=--disable-qsv
+      fi
+      $CRAFT_PART_SRC/configure --snap --prefix=/usr --build=build-snap --enable-libdovi --enable-nvenc --enable-nvdec --enable-vce $FLAG_QSV
+      craftctl default
+    make-parameters:
+      - -C build-snap
+    build-packages:
+      - autoconf
+      - automake
+      - autopoint
+      - clang
+      - cmake
+      - curl
+      - git
+      - libbz2-dev
+      - libicu-dev
+      - libjansson-dev
+      - libmp3lame-dev
+      - libnuma-dev
+      - libopus-dev
+      - libspeex-dev
+      - libtheora-dev
+      - libtool
+      - libtool-bin
+      - libvorbis-dev
+      - libvpx-dev
+      - nasm
+      - rustup
+
+  # Find files provided by the base and platform snap and ensure they aren't
+  # duplicated in this snap
+  cleanup:
+    after: [handbrake]
+    plugin: nil
+    build-snaps: [core24, gtk-common-themes, gnome-46-2404]
+    override-prime: |
+      set -eux
+      for snap in "core24" "gtk-common-themes" "gnome-46-2404"; do
+        cd "/snap/$snap/current" && find . -type f,l -name *.so.* -exec rm -f "$CRAFT_PRIME/{}" \;
+      done
