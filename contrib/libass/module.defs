@@ -42,4 +42,4 @@ ifneq ($(HOST.system),linux)
         FRIBIDI_CFLAGS="-I$(call fn.ABSOLUTE,$(CONTRIB.build/))include"
 endif
 
-LIBASS.CONFIGURE.extra += --disable-libunibreak
+LIBASS.CONFIGURE.extra += --disable-libunibreak --with-pic

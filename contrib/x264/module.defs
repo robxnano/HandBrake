@@ -8,8 +8,7 @@ X264.GCC.args.c_std =
 
 X264.CONFIGURE.deps   =
 X264.CONFIGURE.shared =
-
-X264.CONFIGURE.extra += --disable-lavf --disable-ffms --disable-avs --disable-swscale --disable-gpac --disable-lsmash --disable-cli
+X264.CONFIGURE.extra  = --disable-lavf --disable-ffms --disable-avs --disable-swscale --disable-gpac --disable-lsmash --disable-cli --enable-pic
 
 ifeq (on,$(GCC.lto))
     X264.CONFIGURE.extra += --enable-lto
@@ -27,8 +26,4 @@ endif
 
 ifeq (arm64-darwin,$(HOST.machine)-$(HOST.system))
     X264.CONFIGURE.extra += --host=arm64-apple-darwin
-endif
-
-ifeq (1,$(FEATURE.flatpak))
-    X264.CONFIGURE.extra += --enable-pic
 endif

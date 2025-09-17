@@ -5,6 +5,8 @@ LIBDVDNAV.FETCH.url     = https://github.com/HandBrake/HandBrake-contribs/releas
 LIBDVDNAV.FETCH.url    += https://download.videolan.org/pub/videolan/libdvdnav/6.1.1/libdvdnav-6.1.1.tar.bz2
 LIBDVDNAV.FETCH.sha256  = c191a7475947d323ff7680cf92c0fb1be8237701885f37656c64d04e98d18d48
 
+LIBDVDNAV.CONFIGURE.extra = --with-pic
+
 ifneq (max,$(LIBDVDNAV.GCC.g))
     LIBDVDNAV.GCC.D += NDEBUG
 endif

@@ -7,3 +7,4 @@ ZIMG.FETCH.sha256  = 19a96cdc266466be58be86a9271bedb1f080bf4cc14f5ed58ac39dc5b97
 ZIMG.EXTRACT.tarbase = zimg-snapshot-20250624
 
 ZIMG.CONFIGURE.bootstrap = rm -fr aclocal.m4 autom4te.cache configure; autoreconf -fiv;
+ZIMG.CONFIGURE.extra     = --with-pic
