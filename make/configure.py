@@ -1358,6 +1358,8 @@ def createCLI( cross = None ):
     grp.add_argument( '--snapshot', default=False, action='store_true', help='Force a snapshot build' )
     h = IfHost( 'Build extra contribs for flatpak packaging', '*-*-linux*', none=argparse.SUPPRESS ).value
     grp.add_argument( '--flatpak', default=False, action='store_true', help=h )
+    h = IfHost( 'Build extra contribs for snap packaging', '*-*-linux*', none=argparse.SUPPRESS ).value
+    grp.add_argument( '--snap', default=False, action='store_true', help=h )
     cli.add_argument_group( grp )
 
     ## add compiler options
@@ -2087,6 +2089,7 @@ int main()
     doc.add( 'FEATURE.fdk_aac',    int( options.enable_fdk_aac ))
     doc.add( 'FEATURE.ffmpeg_aac', int( options.enable_ffmpeg_aac ))
     doc.add( 'FEATURE.flatpak',    int( options.flatpak ))
+    doc.add( 'FEATURE.snap',       int( options.snap ))
     doc.add( 'FEATURE.gtk',        int( options.enable_gtk ))
     doc.add( 'FEATURE.mf',         int( options.enable_mf ))
     doc.add( 'FEATURE.nvenc',      int( options.enable_nvenc ))

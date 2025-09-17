@@ -37,6 +37,12 @@ ifeq (1,$(FEATURE.flatpak))
     MODULES += contrib/x264
 endif
 
+ifeq (1,$(FEATURE.snap))
+    MODULES += contrib/libass
+    MODULES += contrib/libjpeg-turbo
+    MODULES += contrib/x264
+endif
+
 ifeq (1,$(FEATURE.fdk_aac))
     MODULES += contrib/fdk-aac
 endif
