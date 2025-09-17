@@ -6,7 +6,45 @@ FREETYPE.FETCH.url     = https://github.com/HandBrake/HandBrake-contribs/release
 FREETYPE.FETCH.url    += https://download.savannah.gnu.org/releases/freetype/freetype-2.13.3.tar.gz
 FREETYPE.FETCH.sha256  = 5c3a8e78f7b24c20b25b54ee575d6daa40007a5f4eea2845861c3409b3021747
 
-FREETYPE.CONFIGURE.deps  =
-FREETYPE.CONFIGURE.extra = --with-harfbuzz=no --with-png=no --with-brotli=no
+FREETYPE.build_dir     = build
 
-FREETYPE.GCC.args.extra += $(FREETYPE.GCC.args.O.$(FREETYPE.GCC.O))
+FREETYPE.CONFIGURE.exe    = $(MESON.exe) setup
+FREETYPE.CONFIGURE.deps   =
+FREETYPE.CONFIGURE.shared =
+FREETYPE.CONFIGURE.host   =
+FREETYPE.CONFIGURE.build  =
+FREETYPE.CONFIGURE.static = -Ddefault_library=static
+FREETYPE.CONFIGURE.extra  = -Dharfbuzz=disabled -Dpng=disabled -Dbrotli=disabled -Dlibdir=lib \
+                            -Dc_args="-I$(call fn.ABSOLUTE,$(CONTRIB.build/)include) $(call fn.ARGS,FREETYPE.GCC,*archs *sysroot *minver ?extra)" \
+                            -Dc_link_args="-L$(call fn.ABSOLUTE,$(CONTRIB.build/)lib) $(call fn.ARGS,FREETYPE.GCC,*archs *sysroot *minver ?extra.exe)" \
+                            -Dpkg_config_path="$(call fn.ABSOLUTE,$(CONTRIB.build/)lib/pkgconfig)"
+FREETYPE.CONFIGURE.env    = CC="$(GCC.gcc)" CXX="$(GCC.gxx)"
+
+ifneq (none,$(FREETYPE.GCC.g))
+    ifeq (none,$(FREETYPE.GCC.O))
+        FREETYPE.CONFIGURE.extra += -Dbuildtype=debug
+    else
+        FREETYPE.CONFIGURE.extra += -Dbuildtype=debugoptimized
+    endif
+else
+    FREETYPE.CONFIGURE.extra += -Dbuildtype=release
+    ifneq (,$(filter $(FREETYPE.GCC.O),size size-aggressive))
+        FREETYPE.CONFIGURE.extra += -Doptimization=s
+    endif
+endif
+
+ifeq (darwin,$(HOST.system))
+    FREETYPE.CONFIGURE.extra += --cross-file=$(call fn.ABSOLUTE,$(SRC/))make/cross/$(HOST.machine)-darwin-gcc.meson
+else ifeq (1-mingw,$(HOST.cross)-$(HOST.system))
+    FREETYPE.CONFIGURE.extra += --cross-file=$(call fn.ABSOLUTE,$(SRC/))make/cross/$(HOST.machine)-w64-mingw32.meson
+endif
+
+FREETYPE.BUILD.make       = $(NINJA.exe)
+
+ifneq (,$(V)$(VERBOSE))
+    FREETYPE.BUILD.extra  = -v
+endif
+
+FREETYPE.INSTALL.make     = $(NINJA.exe)
+
+FREETYPE.CLEAN.make       = $(NINJA.exe)

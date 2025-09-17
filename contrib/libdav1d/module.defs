@@ -13,21 +13,21 @@ LIBDAV1D.CONFIGURE.shared =
 LIBDAV1D.CONFIGURE.host   =
 LIBDAV1D.CONFIGURE.build  =
 LIBDAV1D.CONFIGURE.static = -Ddefault_library=static
-LIBDAV1D.CONFIGURE.extra  = --libdir=$(call fn.ABSOLUTE,$(CONTRIB.build/))lib/ \
-                            -Denable_tools=false -Denable_tests=false \
+LIBDAV1D.CONFIGURE.extra  = -Denable_tools=false -Denable_tests=false -Dlibdir=lib \
                             -Dc_args="-I$(call fn.ABSOLUTE,$(CONTRIB.build/)include) $(call fn.ARGS,LIBDAV1D.GCC,*archs *sysroot *minver ?extra)" \
                             -Dc_link_args="-L$(call fn.ABSOLUTE,$(CONTRIB.build/)lib) $(call fn.ARGS,LIBDAV1D.GCC,*archs *sysroot *minver ?extra.exe)"
-LIBDAV1D.CONFIGURE.env    =
+LIBDAV1D.CONFIGURE.env    = CC="$(GCC.gcc)" CXX="$(GCC.gxx)"
 
 ifneq (none,$(LIBDAV1D.GCC.g))
-    LIBDAV1D.CONFIGURE.extra += --buildtype=debug
     ifeq (none,$(LIBDAV1D.GCC.O))
-        LIBDAV1D.CONFIGURE.extra += --optimization=g
+        LIBDAV1D.CONFIGURE.extra += -Dbuildtype=debug
+    else
+        LIBDAV1D.CONFIGURE.extra += -Dbuildtype=debugoptimized
     endif
 else
-    LIBDAV1D.CONFIGURE.extra += --buildtype=release
+    LIBDAV1D.CONFIGURE.extra += -Dbuildtype=release
     ifneq (,$(filter $(LIBDAV1D.GCC.O),size size-aggressive))
-        LIBDAV1D.CONFIGURE.extra += --optimization=s
+        LIBDAV1D.CONFIGURE.extra += -Doptimization=s
     endif
 endif
 
@@ -40,7 +40,11 @@ ifeq (1-mingw,$(HOST.cross)-$(HOST.system))
 endif
 
 LIBDAV1D.BUILD.make       = $(NINJA.exe)
-LIBDAV1D.BUILD.extra      = -v
+
+ifneq (,$(V)$(VERBOSE))
+    LIBDAV1D.BUILD.extra  = -v
+endif
+
 
 LIBDAV1D.INSTALL.make     = $(NINJA.exe)
 
