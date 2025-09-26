@@ -31,7 +31,6 @@ typedef struct
     GtkDialog *dialog;
     gint response_id;
     GMainLoop *loop;
-    gboolean destroyed;
 } RunInfo;
 
 static void
@@ -61,27 +60,18 @@ run_response_handler (GtkDialog *dialog, int response_id, gpointer data)
     shutdown_loop(ri);
 }
 
-static void
-run_destroy_handler (GtkDialog *dialog, gpointer data)
-{
-    RunInfo *ri = data;
-
-    /* shutdown_loop will be called by run_unmap_handler */
-
-    ri->destroyed = TRUE;
-}
-
 int ghb_dialog_run (GtkDialog *dialog)
 {
-    RunInfo ri = { NULL, GTK_RESPONSE_NONE, NULL, FALSE };
+    RunInfo ri = { NULL, GTK_RESPONSE_NONE, NULL };
     gboolean was_modal;
     gulong response_handler;
     gulong unmap_handler;
-    gulong destroy_handler;
 
     g_return_val_if_fail(GTK_IS_DIALOG(dialog), -1);
 
     g_object_ref(dialog);
+
+    gtk_window_set_hide_on_close(GTK_WINDOW(dialog), TRUE);
 
     was_modal = gtk_window_get_modal(GTK_WINDOW(dialog));
     if (!was_modal)
@@ -100,11 +90,6 @@ int ghb_dialog_run (GtkDialog *dialog)
                                      G_CALLBACK(run_unmap_handler),
                                      &ri);
 
-    destroy_handler = g_signal_connect(dialog,
-                                       "destroy",
-                                       G_CALLBACK(run_destroy_handler),
-                                       &ri);
-
     ri.loop = g_main_loop_new(NULL, FALSE);
 
     g_main_loop_run(ri.loop);
@@ -113,15 +98,11 @@ int ghb_dialog_run (GtkDialog *dialog)
 
     ri.loop = NULL;
 
-    if (!ri.destroyed)
-    {
-        if (!was_modal)
-            gtk_window_set_modal(GTK_WINDOW(dialog), FALSE);
+    if (!was_modal)
+        gtk_window_set_modal(GTK_WINDOW(dialog), FALSE);
 
-        g_signal_handler_disconnect(dialog, response_handler);
-        g_signal_handler_disconnect(dialog, unmap_handler);
-        g_signal_handler_disconnect(dialog, destroy_handler);
-    }
+    g_signal_handler_disconnect(dialog, response_handler);
+    g_signal_handler_disconnect(dialog, unmap_handler);
 
     g_object_unref(dialog);
 

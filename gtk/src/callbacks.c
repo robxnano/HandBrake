@@ -4001,7 +4001,12 @@ ghb_question_dialog_run (GtkWindow *parent, GhbActionStyle accept_style,
     va_end(args);
 
     response = ghb_dialog_run(GTK_DIALOG(dialog));
-    gtk_window_destroy(GTK_WINDOW(dialog));
+
+    if (GTK_IS_WINDOW(dialog))
+    {
+        gtk_window_destroy(GTK_WINDOW(dialog));
+    }
+
     if (response == GTK_RESPONSE_ACCEPT)
     {
         return TRUE;
